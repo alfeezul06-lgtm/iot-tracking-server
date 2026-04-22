@@ -22,7 +22,7 @@ async function sendTelegram(msg) {
 // ===== API =====
 app.post("/scan", (req, res) => {
   const { name } = req.body;
-  const time = new Date().toLocaleTimeString();
+  const time = new Date().toLocaleString("en-MY", { timeZone: "Asia/Kuala_Lumpur" });
 
   if (!items[name] || items[name].status === "OUT") {
     items[name] = {
