@@ -4,16 +4,27 @@ const app = express();
 app.use(express.json());
 
 // ===== TELEGRAM =====
-const botToken = "YOUR_BOT_TOKEN";
-const chatID = "YOUR_CHAT_ID";
+const botToken = "8704984188:AAEbumqDmHgVl24YlKhV0duDS_A17aO5OBI";
+const chatID = "1004963601";
 
 // ===== DATABASE =====
 let items = {};
 
-// ===== TELEGRAM =====
-async function sendTelegram(msg) {
+// ===== TELEGRAM FUNCTION (PRO FORMAT) =====
+async function sendTelegram(name, status, time) {
   try {
-    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatID}&text=${encodeURIComponent(msg)}`);
+    const message =
+`📦 ITEM TRACKING ALERT
+
+Item      : ${name}
+Status    : ${status === "IN" ? "🟢 IN" : "🔴 OUT"}
+Time      : ${time}
+Location  : RFID Gate A
+
+————————————
+IoT Tracking System`;
+
+    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatID}&text=${encodeURIComponent(message)}`);
   } catch (e) {
     console.log("Telegram error");
   }
@@ -22,19 +33,33 @@ async function sendTelegram(msg) {
 // ===== API =====
 app.post("/scan", (req, res) => {
   const { name } = req.body;
-  const time = new Date().toLocaleString("en-MY", { timeZone: "Asia/Kuala_Lumpur" });
 
+  // ❌ BLOCK UNKNOWN ITEM
+  if (!name || name === "UNKNOWN") {
+    return res.status(400).json({ message: "Ignored unknown item" });
+  }
+
+  const time = new Date().toLocaleString("en-MY", {
+    timeZone: "Asia/Kuala_Lumpur",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+
+  // ===== TOGGLE IN / OUT =====
   if (!items[name] || items[name].status === "OUT") {
     items[name] = {
       status: "IN",
       timeIn: time,
       timeOut: "-"
     };
-    sendTelegram(`📦 ${name} IN at ${time}`);
+
+    sendTelegram(name, "IN", time);
+
   } else {
     items[name].status = "OUT";
     items[name].timeOut = time;
-    sendTelegram(`📦 ${name} OUT at ${time}`);
+
+    sendTelegram(name, "OUT", time);
   }
 
   res.json(items[name]);
@@ -51,8 +76,8 @@ app.get("/", (req, res) => {
       h1 { color:cyan; }
       table { margin:auto; width:80%; border-collapse:collapse; }
       th,td { padding:12px; border:1px solid #444; }
-      .in { color:lime; }
-      .out { color:red; }
+      .in { color:lime; font-weight:bold; }
+      .out { color:red; font-weight:bold; }
     </style>
   </head>
   <body>
