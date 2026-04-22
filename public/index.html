@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>IoT Tracking Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #0f172a;
+      color: white;
+      margin: 0;
+    }
+
+    header {
+      background: #1e293b;
+      padding: 15px;
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .container {
+      padding: 20px;
+    }
+
+    .card {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .status.IN { color: #22c55e; }
+    .status.OUT { color: #ef4444; }
+
+    button {
+      background: red;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 5px;
+      color: white;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>📦 IoT Tracking System</header>
+
+<div class="container" id="list"></div>
+
+<script>
+async function loadData() {
+  const res = await fetch('/data');
+  const data = await res.json();
+
+  const list = document.getElementById('list');
+  list.innerHTML = '';
+
+  Object.keys(data).forEach(name => {
+    const item = data[name];
+
+    list.innerHTML += `
+      <div class="card">
+        <div>
+          <b>${name}</b><br>
+          <span class="status ${item.status}">
+            ${item.status}
+          </span><br>
+          <small>${item.time}</small>
+        </div>
+
+        <button onclick="removeItem('${name}')">
+          Remove
+        </button>
+      </div>
+    `;
+  });
+}
+
+async function removeItem(name) {
+  await fetch('/remove', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({name})
+  });
+
+  loadData();
+}
+
+setInterval(loadData, 2000);
+loadData();
+</script>
+
+</body>
+</html>
