@@ -1,6 +1,7 @@
 {
   "name": "iot-tracking-server",
   "version": "1.0.0",
+  "description": "IoT RFID Tracking System",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
