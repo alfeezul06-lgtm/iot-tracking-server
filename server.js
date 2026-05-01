@@ -1,52 +1,50 @@
 const express = require("express");
 const app = express();
-
 app.use(express.json());
-app.use(express.static("public"));
 
-let items = {};
+let items = {};     // current state
+let history = [];   // log history
 
-// ===== SCAN =====
+// 🕒 Get real time
+function getTime() {
+  return new Date().toLocaleString("en-MY", {
+    timeZone: "Asia/Kuala_Lumpur"
+  });
+}
+
+// 📡 Scan endpoint
 app.post("/scan", (req, res) => {
   const { name } = req.body;
 
-  if (!items[name]) {
-    items[name] = { status: "OUT", time: "" };
-  }
+  if (!name) return res.json({ error: "No name" });
 
-  // toggle
-  items[name].status =
-    items[name].status === "IN" ? "OUT" : "IN";
+  // toggle IN / OUT
+  let status = items[name] === "IN" ? "OUT" : "IN";
+  items[name] = status;
 
-  // time
-  const now = new Date().toLocaleString();
-  items[name].time = now;
+  let record = {
+    name,
+    status,
+    time: getTime()
+  };
 
+  history.unshift(record); // newest first
+
+  res.json(record);
+});
+
+// 📊 Get dashboard data
+app.get("/data", (req, res) => {
   res.json({
-    status: items[name].status,
-    time: now
+    items,
+    history
   });
 });
 
-// ===== DATA =====
-app.get("/data", (req, res) => {
-  res.json(items);
+// ❌ Remove item
+app.delete("/remove/:name", (req, res) => {
+  delete items[req.params.name];
+  res.json({ success: true });
 });
 
-// ===== REMOVE =====
-app.post("/remove", (req, res) => {
-  const { name } = req.body;
-
-  if (items[name]) {
-    delete items[name];
-    return res.json({ ok: true });
-  }
-
-  res.json({ ok: false });
-});
-
-// ===== START =====
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log("Server running on port " + PORT);
-});
+app.listen(3000, () => console.log("Server running"));
