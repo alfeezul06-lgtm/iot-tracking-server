@@ -1,9 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>IoT Tracking Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
+  <title>IoT Tracking System</title>
   <style>
     body {
       font-family: Arial;
@@ -12,12 +10,9 @@
       margin: 0;
     }
 
-    header {
-      background: #1e293b;
-      padding: 15px;
+    h1 {
       text-align: center;
-      font-size: 20px;
-      font-weight: bold;
+      padding: 20px;
     }
 
     .container {
@@ -26,74 +21,134 @@
 
     .card {
       background: #1e293b;
-      border-radius: 12px;
       padding: 15px;
-      margin-bottom: 15px;
+      border-radius: 10px;
+      margin-bottom: 10px;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
 
-    .status.IN { color: #22c55e; }
-    .status.OUT { color: #ef4444; }
+    .status-in { color: #22c55e; }
+    .status-out { color: #ef4444; }
 
     button {
       background: red;
-      border: none;
-      padding: 6px 10px;
-      border-radius: 5px;
       color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .counter {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 20px;
+    }
+
+    .box {
+      background: #1e293b;
+      padding: 20px;
+      border-radius: 10px;
+      width: 30%;
+      text-align: center;
+    }
+
+    .history {
+      margin-top: 30px;
     }
   </style>
 </head>
 
 <body>
 
-<header>📦 IoT Tracking System</header>
+<h1>📦 IoT Tracking System</h1>
 
-<div class="container" id="list"></div>
+<div class="container">
+
+  <!-- COUNTER -->
+  <div class="counter">
+    <div class="box">Total Items<br><h2 id="total">0</h2></div>
+    <div class="box">IN<br><h2 id="in">0</h2></div>
+    <div class="box">OUT<br><h2 id="out">0</h2></div>
+  </div>
+
+  <!-- CURRENT ITEMS -->
+  <h2>📋 Current Status</h2>
+  <div id="items"></div>
+
+  <!-- HISTORY -->
+  <div class="history">
+    <h2>🕒 History Log</h2>
+    <div id="history"></div>
+  </div>
+
+</div>
 
 <script>
-async function loadData() {
-  const res = await fetch('/data');
+const API = "https://iot-tracking-server-nkok.onrender.com";
+
+// LOAD DATA
+async function load() {
+  const res = await fetch(API + "/data");
   const data = await res.json();
 
-  const list = document.getElementById('list');
-  list.innerHTML = '';
+  const itemsDiv = document.getElementById("items");
+  const historyDiv = document.getElementById("history");
 
-  Object.keys(data).forEach(name => {
-    const item = data[name];
+  itemsDiv.innerHTML = "";
+  historyDiv.innerHTML = "";
 
-    list.innerHTML += `
+  let total = 0, inCount = 0, outCount = 0;
+
+  // CURRENT ITEMS
+  for (let name in data.items) {
+    total++;
+    let status = data.items[name];
+
+    if (status === "IN") inCount++;
+    else outCount++;
+
+    itemsDiv.innerHTML += `
       <div class="card">
         <div>
           <b>${name}</b><br>
-          <span class="status ${item.status}">
-            ${item.status}
-          </span><br>
-          <small>${item.time}</small>
+          <span class="status-${status.toLowerCase()}">${status}</span>
         </div>
+        <button onclick="removeItem('${name}')">Remove</button>
+      </div>
+    `;
+  }
 
-        <button onclick="removeItem('${name}')">
-          Remove
-        </button>
+  // UPDATE COUNTER
+  document.getElementById("total").innerText = total;
+  document.getElementById("in").innerText = inCount;
+  document.getElementById("out").innerText = outCount;
+
+  // HISTORY LOG
+  data.history.forEach(h => {
+    historyDiv.innerHTML += `
+      <div class="card">
+        <div>
+          <b>${h.name}</b> - 
+          <span class="status-${h.status.toLowerCase()}">${h.status}</span><br>
+          <small>${h.time}</small>
+        </div>
       </div>
     `;
   });
 }
 
+// REMOVE
 async function removeItem(name) {
-  await fetch('/remove', {
-    method: 'POST',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({name})
-  });
-
-  loadData();
+  await fetch(API + "/remove/" + name, { method: "DELETE" });
+  load();
 }
 
-setInterval(loadData, 2000);
-loadData();
+// AUTO REFRESH
+setInterval(load, 1000);
+load();
 </script>
 
 </body>
