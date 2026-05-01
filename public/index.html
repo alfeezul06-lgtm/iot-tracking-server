@@ -1,77 +1,103 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>IoT Tracking System</title>
-  <style>
-    body {
-      font-family: Arial;
-      background: #0f172a;
-      color: white;
-      margin: 0;
-    }
+<meta charset="UTF-8">
+<title>IoT Tracking System</title>
 
-    h1 {
-      text-align: center;
-      padding: 20px;
-    }
+<style>
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: #0f172a;
+    color: #fff;
+  }
 
-    .container {
-      padding: 20px;
-    }
+  header {
+    text-align: center;
+    padding: 20px;
+    font-size: 24px;
+    font-weight: bold;
+    background: #1e293b;
+  }
 
-    .card {
-      background: #1e293b;
-      padding: 15px;
-      border-radius: 10px;
-      margin-bottom: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+  .container {
+    padding: 20px;
+    max-width: 900px;
+    margin: auto;
+  }
 
-    .status-in { color: #22c55e; }
-    .status-out { color: #ef4444; }
+  /* COUNTER */
+  .counter {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-bottom: 25px;
+  }
 
-    button {
-      background: red;
-      color: white;
-      border: none;
-      padding: 5px 10px;
-      border-radius: 5px;
-      cursor: pointer;
-    }
+  .box {
+    background: #1e293b;
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+  }
 
-    .counter {
-      display: flex;
-      justify-content: space-around;
-      margin-bottom: 20px;
-    }
+  .box h2 {
+    margin: 10px 0 0;
+  }
 
-    .box {
-      background: #1e293b;
-      padding: 20px;
-      border-radius: 10px;
-      width: 30%;
-      text-align: center;
-    }
+  /* CARD */
+  .card {
+    background: #1e293b;
+    padding: 12px 15px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
 
-    .history {
-      margin-top: 30px;
-    }
-  </style>
+  .status-in { color: #22c55e; font-weight: bold; }
+  .status-out { color: #ef4444; font-weight: bold; }
+
+  button {
+    background: #ef4444;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
+  }
+
+  h2 {
+    margin-top: 30px;
+  }
+
+  small {
+    color: #94a3b8;
+  }
+</style>
 </head>
 
 <body>
 
-<h1>📦 IoT Tracking System</h1>
+<header>📦 IoT Tracking System</header>
 
 <div class="container">
 
   <!-- COUNTER -->
   <div class="counter">
-    <div class="box">Total Items<br><h2 id="total">0</h2></div>
-    <div class="box">IN<br><h2 id="in">0</h2></div>
-    <div class="box">OUT<br><h2 id="out">0</h2></div>
+    <div class="box">
+      Total Items
+      <h2 id="total">0</h2>
+    </div>
+    <div class="box">
+      IN
+      <h2 id="in">0</h2>
+    </div>
+    <div class="box">
+      OUT
+      <h2 id="out">0</h2>
+    </div>
   </div>
 
   <!-- CURRENT ITEMS -->
@@ -79,10 +105,8 @@
   <div id="items"></div>
 
   <!-- HISTORY -->
-  <div class="history">
-    <h2>🕒 History Log</h2>
-    <div id="history"></div>
-  </div>
+  <h2>🕒 History Log</h2>
+  <div id="history"></div>
 
 </div>
 
@@ -90,65 +114,72 @@
 const API = "https://iot-tracking-server-nkok.onrender.com";
 
 // LOAD DATA
-async function load() {
-  const res = await fetch(API + "/data");
-  const data = await res.json();
+async function loadData() {
+  try {
+    const res = await fetch(API + "/data");
+    const data = await res.json();
 
-  const itemsDiv = document.getElementById("items");
-  const historyDiv = document.getElementById("history");
+    const itemsDiv = document.getElementById("items");
+    const historyDiv = document.getElementById("history");
 
-  itemsDiv.innerHTML = "";
-  historyDiv.innerHTML = "";
+    itemsDiv.innerHTML = "";
+    historyDiv.innerHTML = "";
 
-  let total = 0, inCount = 0, outCount = 0;
+    let total = 0, inCount = 0, outCount = 0;
 
-  // CURRENT ITEMS
-  for (let name in data.items) {
-    total++;
-    let status = data.items[name];
+    // CURRENT ITEMS
+    for (let name in data.items) {
+      total++;
+      const status = data.items[name];
 
-    if (status === "IN") inCount++;
-    else outCount++;
+      if (status === "IN") inCount++;
+      else outCount++;
 
-    itemsDiv.innerHTML += `
-      <div class="card">
-        <div>
-          <b>${name}</b><br>
-          <span class="status-${status.toLowerCase()}">${status}</span>
+      itemsDiv.innerHTML += `
+        <div class="card">
+          <div>
+            <b>${name}</b><br>
+            <span class="status-${status.toLowerCase()}">${status}</span>
+          </div>
+          <button onclick="removeItem('${name}')">Remove</button>
         </div>
-        <button onclick="removeItem('${name}')">Remove</button>
-      </div>
-    `;
+      `;
+    }
+
+    // UPDATE COUNTER
+    document.getElementById("total").innerText = total;
+    document.getElementById("in").innerText = inCount;
+    document.getElementById("out").innerText = outCount;
+
+    // HISTORY
+    data.history.forEach(h => {
+      historyDiv.innerHTML += `
+        <div class="card">
+          <div>
+            <b>${h.name}</b> -
+            <span class="status-${h.status.toLowerCase()}">${h.status}</span><br>
+            <small>${h.time}</small>
+          </div>
+        </div>
+      `;
+    });
+
+  } catch (err) {
+    console.log("Error:", err);
   }
-
-  // UPDATE COUNTER
-  document.getElementById("total").innerText = total;
-  document.getElementById("in").innerText = inCount;
-  document.getElementById("out").innerText = outCount;
-
-  // HISTORY LOG
-  data.history.forEach(h => {
-    historyDiv.innerHTML += `
-      <div class="card">
-        <div>
-          <b>${h.name}</b> - 
-          <span class="status-${h.status.toLowerCase()}">${h.status}</span><br>
-          <small>${h.time}</small>
-        </div>
-      </div>
-    `;
-  });
 }
 
-// REMOVE
+// REMOVE ITEM
 async function removeItem(name) {
-  await fetch(API + "/remove/" + name, { method: "DELETE" });
-  load();
+  await fetch(API + "/remove/" + name, {
+    method: "DELETE"
+  });
+  loadData();
 }
 
-// AUTO REFRESH
-setInterval(load, 1000);
-load();
+// AUTO REFRESH (REALTIME)
+setInterval(loadData, 1000);
+loadData();
 </script>
 
 </body>
