@@ -1,44 +1,46 @@
 const express = require("express");
+const path = require("path");
+
 const app = express();
 app.use(express.json());
 
-let items = {};     // current state
-let history = [];   // log history
+// 🔥 Serve HTML from /public
+app.use(express.static(path.join(__dirname, "public")));
 
-// 🕒 Get real time
+let items = {};
+let history = [];
+
+// 🕒 Malaysia Time
 function getTime() {
   return new Date().toLocaleString("en-MY", {
     timeZone: "Asia/Kuala_Lumpur"
   });
 }
 
-// 📡 Scan endpoint
+// 📡 RFID Scan API
 app.post("/scan", (req, res) => {
   const { name } = req.body;
 
   if (!name) return res.json({ error: "No name" });
 
-  // toggle IN / OUT
+  // Toggle IN / OUT
   let status = items[name] === "IN" ? "OUT" : "IN";
   items[name] = status;
 
-  let record = {
+  const record = {
     name,
     status,
     time: getTime()
   };
 
-  history.unshift(record); // newest first
+  history.unshift(record);
 
   res.json(record);
 });
 
-// 📊 Get dashboard data
+// 📊 Dashboard Data
 app.get("/data", (req, res) => {
-  res.json({
-    items,
-    history
-  });
+  res.json({ items, history });
 });
 
 // ❌ Remove item
@@ -47,4 +49,11 @@ app.delete("/remove/:name", (req, res) => {
   res.json({ success: true });
 });
 
-app.listen(3000, () => console.log("Server running"));
+// 🔥 Root route fix
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+// 🚀 Start server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log("Server running on " + PORT));
