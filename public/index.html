@@ -1,104 +1,160 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modern Analytics Dashboard</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta charset="UTF-8">
+<title>IoT Tracking System</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: #0f172a;
+  color: #fff;
+}
+
+header {
+  text-align: center;
+  padding: 20px;
+  font-size: 24px;
+  background: #1e293b;
+}
+
+.container {
+  max-width: 900px;
+  margin: auto;
+  padding: 20px;
+}
+
+.counter {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+.box {
+  background: #1e293b;
+  padding: 15px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.card {
+  background: #1e293b;
+  padding: 12px;
+  border-radius: 10px;
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.status-in { color: #22c55e; }
+.status-out { color: #ef4444; }
+
+button {
+  background: red;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 5px;
+  color: white;
+  cursor: pointer;
+}
+</style>
 </head>
+
 <body>
 
-    <div class="dashboard-container">
-        <aside class="sidebar">
-            <div class="sidebar-brand">
-                <i class="fa-solid fa-chart-pie"></i> <span>CoreDash</span>
-            </div>
-            <ul class="sidebar-menu">
-                <li class="active"><a href="#"><i class="fa-solid fa-house"></i> Dashboard</a></li>
-                <li><a href="#"><i class="fa-solid fa-wallet"></i> Wallet</a></li>
-                <li><a href="#"><i class="fa-solid fa-chart-line"></i> Analytics</a></li>
-                <li><a href="#"><i class="fa-solid fa-gear"></i> Settings</a></li>
-            </ul>
-        </aside>
+<header>📦 IoT Tracking System</header>
 
-        <main class="main-content">
-            <header class="top-header">
-                <h2>Overview Dashboard</h2>
-                <div class="user-profile">
-                    <i class="fa-solid fa-bell notification-icon"></i>
-                    <div class="avatar">JD</div>
-                </div>
-            </header>
+<div class="container">
 
-            <section class="metrics-grid">
-                <div class="card">
-                    <div class="card-icon blue"><i class="fa-solid fa-dollar-sign"></i></div>
-                    <div class="card-info">
-                        <h3>$45,231</h3>
-                        <p>Total Revenue</p>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-icon green"><i class="fa-solid fa-users"></i></div>
-                    <div class="card-info">
-                        <h3>2,845</h3>
-                        <p>Active Users</p>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-icon orange"><i class="fa-solid fa-shopping-bag"></i></div>
-                    <div class="card-info">
-                        <h3>1,205</h3>
-                        <p>Total Sales</p>
-                    </div>
-                </div>
-            </section>
+  <!-- COUNTER -->
+  <div class="counter">
+    <div class="box">Total<br><h2 id="total">0</h2></div>
+    <div class="box">IN<br><h2 id="in">0</h2></div>
+    <div class="box">OUT<br><h2 id="out">0</h2></div>
+  </div>
 
-            <section class="charts-grid">
-                <div class="chart-container">
-                    <h3>Monthly Sales Performance</h3>
-                    <canvas id="salesChart"></canvas>
-                </div>
-                <div class="chart-container">
-                    <h3>Traffic Sources</h3>
-                    <canvas id="pieChart"></canvas>
-                </div>
-            </section>
-        </main>
-    </div>
+  <!-- CURRENT -->
+  <h2>📋 Current Items</h2>
+  <div id="items"></div>
 
-    <script>
-        // Line Chart Config
-        const ctx1 = document.getElementById('salesChart').getContext('2d');
-        new Chart(ctx1, {
-            type: 'line',
-            data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                datasets: [{
-                    label: 'Revenue ($)',
-                    data: [12000, 19000, 3000, 5000, 22000, 31000],
-                    borderColor: '#4361ee',
-                    tension: 0.4,
-                    fill: true,
-                    backgroundColor: 'rgba(67, 97, 238, 0.1)'
-                }]
-            }
-        });
+  <!-- HISTORY -->
+  <h2>🕒 History</h2>
+  <div id="history"></div>
 
-        // Pie Chart Config
-        const ctx2 = document.getElementById('pieChart').getContext('2d');
-        new Chart(ctx2, {
-            type: 'doughnut',
-            data: {
-                labels: ['Direct', 'Social', 'Referral'],
-                datasets: [{
-                    data: [55, 30, 15],
-                    backgroundColor: ['#4361ee', '#2ec4b6', '#ff9f1c']
-                }]
-            }
-        });
-    </script>
+</div>
+
+<script>
+const API = "";
+
+// 🔥 Auto detect (Render friendly)
+if (window.location.hostname.includes("render.com")) {
+  API = "";
+} else {
+  API = "";
+}
+
+// LOAD DATA
+async function load() {
+  const res = await fetch(API + "/data");
+  const data = await res.json();
+
+  let itemsDiv = document.getElementById("items");
+  let historyDiv = document.getElementById("history");
+
+  itemsDiv.innerHTML = "";
+  historyDiv.innerHTML = "";
+
+  let total = 0, inCount = 0, outCount = 0;
+
+  // ITEMS
+  for (let name in data.items) {
+    total++;
+    let status = data.items[name];
+
+    if (status === "IN") inCount++;
+    else outCount++;
+
+    itemsDiv.innerHTML += `
+      <div class="card">
+        <div>
+          <b>${name}</b><br>
+          <span class="status-${status.toLowerCase()}">${status}</span>
+        </div>
+        <button onclick="removeItem('${name}')">Remove</button>
+      </div>
+    `;
+  }
+
+  // COUNTER
+  document.getElementById("total").innerText = total;
+  document.getElementById("in").innerText = inCount;
+  document.getElementById("out").innerText = outCount;
+
+  // HISTORY
+  data.history.forEach(h => {
+    historyDiv.innerHTML += `
+      <div class="card">
+        <div>
+          <b>${h.name}</b> -
+          <span class="status-${h.status.toLowerCase()}">${h.status}</span><br>
+          <small>${h.time}</small>
+        </div>
+      </div>
+    `;
+  });
+}
+
+// REMOVE
+async function removeItem(name) {
+  await fetch("/remove/" + name, { method: "DELETE" });
+  load();
+}
+
+// REALTIME
+setInterval(load, 1000);
+load();
+</script>
+
 </body>
 </html>
