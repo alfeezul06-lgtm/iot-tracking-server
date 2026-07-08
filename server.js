@@ -10,10 +10,9 @@ const DATA_FILE = path.join(__dirname, 'data.json');
 app.use(cors());
 app.use(express.json());
 
-// --- 🌐 SERVE FRONTEND DASHBOARD FILES ---
+// Serve static frontend files from root directory
 app.use(express.static(__dirname));
 
-// Safely read unified structural layout database
 const readDB = () => {
     try {
         const raw = fs.readFileSync(DATA_FILE, 'utf8');
@@ -38,12 +37,9 @@ const writeDB = (data) => {
     fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
 };
 
-// --- CORE MATCHED ENDPOINTS ---
-
-// GET /data: Returns the exact unified root structure the frontend loop requires
+// GET /data - Core dashboard pull endpoint
 app.get('/data', (req, res) => {
     const db = readDB();
-    
     const items = db.items || [];
     const totalProducts = items.length;
     const totalUnitsCount = items.reduce((acc, item) => acc + (parseInt(item.qty, 10) || 0), 0);
@@ -56,14 +52,14 @@ app.get('/data', (req, res) => {
         inventoryValue: db.overview?.inventoryValue || "RM 0",
         time: new Date().toLocaleString('en-GB', { hour12: false }) 
     };
-
     res.json(db);
 });
 
-// POST /add: Receives incoming data from frontend manual input forms
+// POST /add - Manual web dashboard additions
 app.post('/add', (req, res) => {
     const db = readDB();
     const qtyInput = parseInt(req.body.qty, 10) || 1; 
+    const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
     const newItem = {
         id: Date.now(), 
@@ -72,7 +68,7 @@ app.post('/add', (req, res) => {
         qty: qtyInput,
         status: qtyInput <= 5 ? "LOW" : "Normal",
         price: req.body.price || "RM 0",
-        updated: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        updated: timestamp
     };
 
     db.items = db.items || [];
@@ -80,7 +76,7 @@ app.post('/add', (req, res) => {
 
     db.history = db.history || [];
     db.history.unshift({
-        time: newItem.updated,
+        time: timestamp,
         name: newItem.name,
         change: `+${qtyInput}` 
     });
@@ -89,17 +85,13 @@ app.post('/add', (req, res) => {
     res.status(201).json({ success: true, item: newItem });
 });
 
-// --- 🤖 NEW: COMPATIBILITY ENDPOINT FOR YOUR ESP32 HARDWARE ---
-// This listens to your ESP32's /scan path and maps its data directly into your schema
+// POST /scan - Hardware node integrations for ESP32
 app.post('/scan', (req, res) => {
     const db = readDB();
-    
-    // Captures your ESP data (e.g., name: "ESP-Cloud-Node", status: "IN")
     const deviceName = req.body.name || "ESP32 Scan Node";
-    const scanStatus = req.body.status || "IN";
+    const scanStatus = (req.body.status || "IN").toUpperCase();
     const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-    // 1. Log the physical device operation directly to your scrolling transaction history panel
     db.history = db.history || [];
     db.history.unshift({
         time: timestamp,
@@ -107,20 +99,17 @@ app.post('/scan', (req, res) => {
         change: scanStatus === "IN" ? "+1" : "-1"
     });
 
-    // 2. Optionally insert/increment a table entry tracking items logged by this scanner node
     db.items = db.items || [];
     let existingItem = db.items.find(item => item.name === deviceName);
 
     if (existingItem) {
         let currentQty = parseInt(existingItem.qty, 10) || 0;
-        if (scanStatus === "IN") currentQty += 1;
-        else currentQty = Math.max(0, currentQty - 1); // Ensure quantities don't drop under zero
+        currentQty = scanStatus === "IN" ? currentQty + 1 : Math.max(0, currentQty - 1);
         
         existingItem.qty = currentQty;
         existingItem.status = currentQty <= 5 ? "LOW" : "Normal";
         existingItem.updated = timestamp;
     } else {
-        // If it's a completely new tracked tag layout, initialize it
         db.items.push({
             id: Date.now(),
             name: deviceName,
@@ -133,10 +122,10 @@ app.post('/scan', (req, res) => {
     }
 
     writeDB(db);
-    res.status(200).json({ success: true, message: "ESP32 transmission successfully processed" });
+    res.status(200).json({ success: true });
 });
 
-// DELETE /remove/:id: Deletes targeting matching numeric element IDs
+// DELETE /remove/:id - Dashboard deletions
 app.delete('/remove/:id', (req, res) => {
     const targetId = parseInt(req.params.id, 10);
     const db = readDB();
@@ -157,17 +146,16 @@ app.delete('/remove/:id', (req, res) => {
 
     db.items = db.items.filter(item => item.id !== targetId);
     
-    // FIX: Removed the leaked 'data = db' assignment bug
     writeDB(db);
     res.json({ success: true, removedId: targetId });
 });
 
-// --- 🌐 FALLBACK ROUTE ---
 app.use(express.static(path.join(__dirname, "public")));
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
+
 app.listen(PORT, () => {
-    console.log(`🚀 API synchronization network running active on port ${PORT}`);
+    console.log(`🚀 Warehouse core engine active on port ${PORT}`);
 });
