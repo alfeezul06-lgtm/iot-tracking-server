@@ -160,6 +160,22 @@ body::before {
   box-shadow: 0 0 12px rgba(37, 99, 235, 0.4);
 }
 
+.btn-edit-inline {
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid #38bdf8;
+  color: #bae6fd;
+  padding: 3px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  margin-right: 5px;
+}
+
+.btn-edit-inline:hover {
+  background: #38bdf8;
+  color: #0f172a;
+}
+
 .btn-delete {
   background: rgba(239, 68, 68, 0.2);
   border: 1px solid #ef4444;
@@ -168,7 +184,6 @@ body::before {
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.85rem;
-  transition: all 0.2s;
 }
 
 .btn-delete:hover {
@@ -223,10 +238,31 @@ body::before {
 
 .panel:last-child { border-right: none; }
 
+.panel-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
 .panel h3 {
   font-size: 0.95rem;
-  margin-bottom: 10px;
   color: #94a3b8;
+}
+
+.btn-clear-logs {
+    background: rgba(245, 158, 11, 0.15);
+    border: 1px solid #f59e0b;
+    color: #fde68a;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    cursor: pointer;
+}
+
+.btn-clear-logs:hover {
+    background: #f59e0b;
+    color: #0f172a;
 }
 
 .list-container {
