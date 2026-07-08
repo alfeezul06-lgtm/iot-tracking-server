@@ -1,0 +1,18 @@
+{
+  "overview": {
+    "products": 0,
+    "totalUnits": "0",
+    "lowStock": 0,
+    "inventoryValue": "RM 0",
+    "time": ""
+  },
+  "items": [],
+  "history": [],
+  "movement": [
+    { "day": "Mon", "percentage": 40 },
+    { "day": "Tue", "percentage": 65 },
+    { "day": "Wed", "percentage": 30 },
+    { "day": "Thu", "percentage": 85 },
+    { "day": "Fri", "percentage": 50 }
+  ]
+}
