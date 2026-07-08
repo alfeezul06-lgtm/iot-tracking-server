@@ -32,6 +32,7 @@ async function load() {
           <td class="${statusClass}">${item.status}</td>
           <td>${item.price}</td>
           <td>
+            <button class="btn-edit-inline" onclick="editItem(${item.id}, '${item.name}', '${item.rack}', ${item.qty}, '${item.price}')">Edit</button>
             <button class="btn-delete" onclick="removeItem(${item.id})">Delete</button>
           </td>
         </tr>
@@ -73,13 +74,35 @@ async function addItem() {
     if (!name) return;
     const rack = prompt("Assigned Bin location:") || "Zone-A";
     const qty = parseInt(prompt("Starting Volume Units:"), 10) || 0;
-    const price = prompt("Evaluated Unit Cost (e.g. RM 20):") || "RM 0";
+    const price = prompt("Evaluated Unit Cost:") || "RM 0";
 
     await fetch(API + "/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, rack, qty, price })
     });
+    load();
+}
+
+async function editItem(id, currentName, currentRack, currentQty, currentPrice) {
+    const name = prompt("Modify Description:", currentName) || currentName;
+    const rack = prompt("Modify Bin Location:", currentRack) || currentRack;
+    const qty = parseInt(prompt("Modify Quantities Available:", currentQty), 10);
+    const price = prompt("Modify Unit Valuation Cost:", currentPrice) || currentPrice;
+
+    if (isNaN(qty)) return;
+
+    await fetch(API + "/edit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, name, rack, qty, price })
+    });
+    load();
+}
+
+async function clearLogs() {
+    if (!confirm("Flush the operational history tracking log?")) return;
+    await fetch(API + "/clear-logs", { method: "POST" });
     load();
 }
 
