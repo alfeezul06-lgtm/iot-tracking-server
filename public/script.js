@@ -1,29 +1,11 @@
-<td><strong>${item.name}</strong></td>
-<td>${item.rack}</td>
-<td>${item.qty}</td>
-<td class="${statusClass}">${item.status}</td>
-<td>${item.price}</td>
-<td>${item.updated}</td> ```
-But if you look back at your HTML table header (`<thead>`), column #6 is actually marked as **`Action`** (the Delete button container). Also, your backend code doesn't generate an `item.updated` property anymore; it calculates timestamps dynamically inside the history logging track!
-
-Because of this, your columns are misaligned, and your **Delete button is completely missing from the UI**, preventing you from removing entries.
-
----
-
-### 🛠️ The Fix
-Here is your exact `script.js` file with the table template row fixed. It swaps `${item.updated}` with a working dynamic **Delete Button** that binds cleanly to your backend's `item.id`, instantly resolving the alignment and unlocking full removal capability.
-
-```javascript
 const API = ""; 
 let currentSearchQuery = "";
 
-// LOAD ALL DATA FROM BACKEND API
 async function load() {
   try {
     const res = await fetch(API + "/data");
     const data = await res.json();
 
-    // 1. UPDATE OVERVIEW COUNTERS DYNAMICALLY
     document.getElementById("total-products").innerText = data.overview.products || 0;
     document.getElementById("total-units").innerText = data.overview.totalUnits || 0;
     document.getElementById("low-stock").innerText = data.overview.lowStock || 0;
@@ -32,7 +14,6 @@ async function load() {
         document.getElementById("live-time").innerText = data.overview.time;
     }
 
-    // 2. RENDER THE MAIN ITEMS TABLE (WITH CLIENT-SIDE SEARCH FILTERING)
     const tbody = document.getElementById("stock-tbody");
     tbody.innerHTML = "";
 
@@ -43,7 +24,6 @@ async function load() {
 
     filteredItems.forEach(item => {
       const statusClass = item.status.toUpperCase() === "LOW" ? "text-low" : "status-normal";
-      // FIX: Changed the last column from raw text string to the actual working action delete button element
       tbody.innerHTML += `
         <tr>
           <td><strong>${item.name}</strong></td>
@@ -52,15 +32,12 @@ async function load() {
           <td class="${statusClass}">${item.status}</td>
           <td>${item.price}</td>
           <td>
-            <button onclick="removeItem(${item.id})" style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #fca5a5; padding: 3px 8px; border-radius: 4px; cursor: pointer;">
-              Delete
-            </button>
+            <button class="btn-delete" onclick="removeItem(${item.id})">Delete</button>
           </td>
         </tr>
       `;
     });
 
-    // 3. RENDER RECENT TRANSACTIONS LOG
     const logsContainer = document.getElementById("transactions-list");
     logsContainer.innerHTML = "";
     
@@ -74,7 +51,6 @@ async function load() {
       `;
     });
 
-    // 4. RENDER STOCK MOVEMENT BARS
     const chartBox = document.getElementById("chart-box");
     chartBox.innerHTML = "";
     
@@ -88,38 +64,34 @@ async function load() {
     });
 
   } catch (error) {
-     console.error("Error communicating with IoT layout API:", error);
+     console.error("Layout telemetry sync failure:", error);
   }
 }
 
-// HANDLES CLICKING TO ADD/POST NEW ITEM OVER API
 async function addItem() {
-    const name = prompt("Enter Item Name:");
+    const name = prompt("Item Label Description:");
     if (!name) return;
-    const rack = prompt("Enter Rack Location (e.g., A-01):") || "N/A";
-    const qty = parseInt(prompt("Enter Quantity Count:"), 10) || 0;
-    const price = prompt("Enter Unit Price (e.g., RM 120):") || "RM 0";
+    const rack = prompt("Assigned Bin location:") || "Zone-A";
+    const qty = parseInt(prompt("Starting Volume Units:"), 10) || 0;
+    const price = prompt("Evaluated Unit Cost (e.g. RM 20):") || "RM 0";
 
     await fetch(API + "/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name, rack: rack, qty: qty, price: price })
+        body: JSON.stringify({ name, rack, qty, price })
     });
     load();
 }
 
-// NEW: CONNECTOR LINK TO EXECUTE LIVE REMOVAL ALONG BACKEND ENDPOINT
 async function removeItem(id) {
     await fetch(`${API}/remove/${id}`, { method: "DELETE" });
     load();
 }
 
-// LOCAL SEARCH ACCELERATOR
 document.getElementById("search-bar").addEventListener("input", (e) => {
     currentSearchQuery = e.target.value;
     load(); 
 });
 
-// REALTIME LOOPS (Every 1 second)
 setInterval(load, 1000);
 load();
