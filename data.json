@@ -9,10 +9,10 @@
   "items": [],
   "history": [],
   "movement": [
-    { "day": "Mon", "percentage": 40 },
-    { "day": "Tue", "percentage": 65 },
-    { "day": "Wed", "percentage": 30 },
-    { "day": "Thu", "percentage": 85 },
-    { "day": "Fri", "percentage": 50 }
+    { "day": "Mon", "percentage": 10 },
+    { "day": "Tue", "percentage": 40 },
+    { "day": "Wed", "percentage": 25 },
+    { "day": "Thu", "percentage": 70 },
+    { "day": "Fri", "percentage": 45 }
   ]
 }
