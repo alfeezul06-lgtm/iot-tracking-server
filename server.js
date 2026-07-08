@@ -8,7 +8,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // ✅ Serve static files
-app.use(express.static(path.join(__dirname, "public/index.html")));
+app.use(express.static(path.join(__dirname, "public")));
 
 // 🔐 CORS (important if ESP32 / browser different origin)
 app.use((req, res, next) => {
