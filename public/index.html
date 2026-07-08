@@ -1,56 +1,104 @@
 <!DOCTYPE html>
-<html><head><meta charset="UTF-8"><title>Warehouse Dashboard</title>
-<style>
-body{font-family:Arial;background:#0f172a;color:#fff;margin:0}
-header{background:#1e293b;padding:18px;text-align:center;font-size:28px}
-.wrap{padding:20px;max-width:1200px;margin:auto}
-.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}
-.card{background:#1e293b;padding:15px;border-radius:10px;text-align:center}
-table{width:100%;border-collapse:collapse;margin-top:20px}
-th,td{padding:10px;border-bottom:1px solid #334155}
-button{padding:6px 12px}
-input{padding:8px;width:250px}
-</style></head>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Analytics Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
 <body>
-<header>📦 Warehouse Stock Management Dashboard</header>
-<div class="wrap">
-<div class="cards">
-<div class="card"><h3>Total Products</h3><h2 id="products">0</h2></div>
-<div class="card"><h3>Total Stock</h3><h2 id="stock">0</h2></div>
-<div class="card"><h3>Low Stock</h3><h2 id="low">0</h2></div>
-<div class="card"><h3>Inventory Value</h3><h2 id="value">RM0</h2></div>
-</div>
-<h2>Warehouse Inventory</h2>
-<input id="search" placeholder="Search item..." onkeyup="render()">
-<table>
-<thead><tr><th>Item</th><th>RFID</th><th>Qty</th><th>Unit(RM)</th><th>Total</th><th>Status</th></tr></thead>
-<tbody id="tbody"></tbody>
-</table>
-<h2>Recent Activity</h2>
-<ul id="history"></ul>
-</div>
-<script>
-let items=[
-{name:"Motor",uid:"TAG001",qty:20,price:120},
-{name:"Sensor",uid:"TAG002",qty:5,price:25},
-{name:"Screw",uid:"TAG003",qty:200,price:0.2}
-];
-let history=["Motor +5","Sensor -2","Screw +100"];
-function render(){
-let tb=document.getElementById("tbody");tb.innerHTML="";
-let q=document.getElementById("search").value.toLowerCase();
-let stock=0,low=0,val=0;
-items.filter(i=>i.name.toLowerCase().includes(q)).forEach(i=>{
-stock+=i.qty;val+=i.qty*i.price;if(i.qty<10)low++;
-let st=i.qty==0?"Out":i.qty<10?"Low":"Normal";
-tb.innerHTML+=`<tr><td>${i.name}</td><td>${i.uid}</td><td>${i.qty}</td><td>${i.price}</td><td>${(i.qty*i.price).toFixed(2)}</td><td>${st}</td></tr>`;
-});
-products.innerText=items.length;stockEl=document.getElementById("stock");stockEl.innerText=stock;
-lowEl=document.getElementById("low");lowEl.innerText=low;
-value.innerText="RM"+val.toFixed(2);
-historyEl=document.getElementById("history");historyEl.innerHTML="";
-history.forEach(h=>historyEl.innerHTML+=`<li>${h}</li>`);
-}
-render();
-</script>
-</body></html>
+
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <i class="fa-solid fa-chart-pie"></i> <span>CoreDash</span>
+            </div>
+            <ul class="sidebar-menu">
+                <li class="active"><a href="#"><i class="fa-solid fa-house"></i> Dashboard</a></li>
+                <li><a href="#"><i class="fa-solid fa-wallet"></i> Wallet</a></li>
+                <li><a href="#"><i class="fa-solid fa-chart-line"></i> Analytics</a></li>
+                <li><a href="#"><i class="fa-solid fa-gear"></i> Settings</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-header">
+                <h2>Overview Dashboard</h2>
+                <div class="user-profile">
+                    <i class="fa-solid fa-bell notification-icon"></i>
+                    <div class="avatar">JD</div>
+                </div>
+            </header>
+
+            <section class="metrics-grid">
+                <div class="card">
+                    <div class="card-icon blue"><i class="fa-solid fa-dollar-sign"></i></div>
+                    <div class="card-info">
+                        <h3>$45,231</h3>
+                        <p>Total Revenue</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-icon green"><i class="fa-solid fa-users"></i></div>
+                    <div class="card-info">
+                        <h3>2,845</h3>
+                        <p>Active Users</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-icon orange"><i class="fa-solid fa-shopping-bag"></i></div>
+                    <div class="card-info">
+                        <h3>1,205</h3>
+                        <p>Total Sales</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="charts-grid">
+                <div class="chart-container">
+                    <h3>Monthly Sales Performance</h3>
+                    <canvas id="salesChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>Traffic Sources</h3>
+                    <canvas id="pieChart"></canvas>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // Line Chart Config
+        const ctx1 = document.getElementById('salesChart').getContext('2d');
+        new Chart(ctx1, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'Revenue ($)',
+                    data: [12000, 19000, 3000, 5000, 22000, 31000],
+                    borderColor: '#4361ee',
+                    tension: 0.4,
+                    fill: true,
+                    backgroundColor: 'rgba(67, 97, 238, 0.1)'
+                }]
+            }
+        });
+
+        // Pie Chart Config
+        const ctx2 = document.getElementById('pieChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'doughnut',
+            data: {
+                labels: ['Direct', 'Social', 'Referral'],
+                datasets: [{
+                    data: [55, 30, 15],
+                    backgroundColor: ['#4361ee', '#2ec4b6', '#ff9f1c']
+                }]
+            }
+        });
+    </script>
+</body>
+</html>
