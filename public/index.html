@@ -3,23 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Warehouse Stock Management System</title>
+    <title>Warehouse Tracking Core</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="dashboard">
     <header class="header">
-        <div class="brand">📦 WAREHOUSE STOCK MANAGEMENT SYSTEM</div>
+        <div class="brand">📦 WAREHOUSE STORAGE ENGINE</div>
         <div class="system-status">
-            <span class="status-indicator"></span> ONLINE
-            <span id="live-time" class="timestamp">08/07/2026 20:45</span>
+            <span class="status-indicator"></span> NETWORK STATUS ONLINE
+            <span id="live-time" class="timestamp">--/--/---- --:--</span>
         </div>
     </header>
 
     <div class="metrics-grid">
         <div class="metric-box">
-            <span class="label">Products</span>
+            <span class="label">Distinct Products</span>
             <h2 id="total-products">0</h2>
         </div>
         <div class="metric-box">
@@ -27,48 +27,44 @@
             <h2 id="total-units">0</h2>
         </div>
         <div class="metric-box">
-            <span class="label">Low Stock</span>
+            <span class="label">Low Stock Alarms</span>
             <h2 id="low-stock" class="text-low">0</h2>
         </div>
         <div class="metric-box">
-            <span class="label">Inventory Value</span>
+            <span class="label">Valuation</span>
             <h2 id="inv-value">RM 0</h2>
         </div>
     </div>
 
     <div class="action-bar">
-        <input type="text" id="search-bar" placeholder="Search item...">
-        <button class="btn-add" onclick="addItem()">+ Add Item</button>
+        <input type="text" id="search-bar" placeholder="Filter parameters...">
+        <button class="btn-add" onclick="addItem()">+ Inventory Intake</button>
     </div>
 
     <div class="table-container">
         <table class="stock-table">
             <thead>
                 <tr>
-                    <th>Item Name</th>
-                    <th>Rack</th>
-                    <th>Qty</th>
-                    <th>Status</th>
-                    <th>Unit Price</th>
-                    <th>Last Updated</th>
+                    <th>Identifier</th>
+                    <th>Zone</th>
+                    <th>Quantity</th>
+                    <th>Status Flag</th>
+                    <th>Unit Value</th>
+                    <th>Controls</th>
                 </tr>
             </thead>
-            <tbody id="stock-tbody">
-                </tbody>
+            <tbody id="stock-tbody"></tbody>
         </table>
     </div>
 
     <div class="lower-grid">
         <div class="panel">
-            <h3>Recent Transactions</h3>
-            <div id="transactions-list" class="list-container">
-                </div>
+            <h3>Transaction Activity Logs</h3>
+            <div id="transactions-list" class="list-container"></div>
         </div>
-
         <div class="panel">
-            <h3>Stock Movement (Last 7 Days)</h3>
-            <div id="chart-box" class="chart-container">
-                </div>
+            <h3>Relative Vector Volume</h3>
+            <div id="chart-box" class="chart-container"></div>
         </div>
     </div>
 </div>
