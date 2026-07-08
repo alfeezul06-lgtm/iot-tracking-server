@@ -164,7 +164,7 @@ app.delete('/remove/:id', (req, res) => {
 
 // --- 🌐 FALLBACK ROUTE ---
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public'));
+    res.sendFile(path.join(__dirname, 'public',));
 });
 
 app.listen(PORT, () => {
