@@ -32,7 +32,6 @@ const readDB = () => {
     }
 };
 
-
 const writeDB = (data) => {
     fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
 };
