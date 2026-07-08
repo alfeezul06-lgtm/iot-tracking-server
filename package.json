@@ -1,7 +1,7 @@
 {
-  "name": "warehouse-iot-backend",
+  "name": "iot-tracking-server",
   "version": "1.0.0",
-  "description": "IoT Backend for Warehouse tracking",
+  "description": "Unified IoT Warehouse Tracking System",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
