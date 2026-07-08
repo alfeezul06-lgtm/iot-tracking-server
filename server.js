@@ -1,95 +1,120 @@
-const API = ""; 
-let currentSearchQuery = "";
+const express = require('express');
+const fs = require('fs');
+const path = require('path');
+const cors = require('cors');
 
-// LOAD ALL DATA FROM BACKEND API
-async function load() {
-  try {
-    const res = await fetch(API + "/data");
-    const data = await res.json();
+const app = express();
+const PORT = process.env.PORT || 3000;
+const DATA_FILE = path.join(__dirname, 'data.json');
 
-    // 1. UPDATE OVERVIEW COUNTERS DYNAMICALLY
-    document.getElementById("total-products").innerText = data.overview.products || 0;
-    document.getElementById("total-units").innerText = data.overview.totalUnits || 0;
-    document.getElementById("low-stock").innerText = data.overview.lowStock || 0;
-    document.getElementById("inv-value").innerText = data.overview.inventoryValue || "RM 0";
-    if(data.overview.time) {
-        document.getElementById("live-time").innerText = data.overview.time;
+app.use(cors());
+app.use(express.json());
+
+// Safely read unified structural layout database
+const readDB = () => {
+    try {
+        const raw = fs.readFileSync(DATA_FILE, 'utf8');
+        return JSON.parse(raw);
+    } catch (err) {
+        // Fallback layout exactly matching your frontend expectations
+        return {
+            overview: { products: 0, totalUnits: "0", lowStock: 0, inventoryValue: "RM 0", time: "" },
+            items: [],
+            history: [],
+            movement: [
+                { "day": "Mon", "percentage": 0 },
+                { "day": "Tue", "percentage": 0 },
+                { "day": "Wed", "percentage": 0 },
+                { "day": "Thu", "percentage": 0 },
+                { "day": "Fri", "percentage": 0 }
+            ]
+        };
     }
+};
 
-    // 2. RENDER THE MAIN ITEMS TABLE (WITH CLIENT-SIDE SEARCH FILTERING)
-    const tbody = document.getElementById("stock-tbody");
-    tbody.innerHTML = "";
+const writeDB = (data) => {
+    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
+};
 
-    const filteredItems = data.items.filter(item => 
-      item.name.toLowerCase().includes(currentSearchQuery.toLowerCase()) ||
-      item.rack.toLowerCase().includes(currentSearchQuery.toLowerCase())
-    );
+// --- CORE MATCHED ENDPOINTS ---
 
-    filteredItems.forEach(item => {
-      const statusClass = item.status.toUpperCase() === "LOW" ? "text-low" : "status-normal";
-      tbody.innerHTML += `
-        <tr>
-          <td><strong>${item.name}</strong></td>
-          <td>${item.rack}</td>
-          <td>${item.qty}</td>
-          <td class="${statusClass}">${item.status}</td>
-          <td>${item.price}</td>
-          <td>${item.updated}</td>
-        </tr>
-      `;
-    });
-
-    // 3. RENDER RECENT TRANSACTIONS LOG
-    const logsContainer = document.getElementById("transactions-list");
-    logsContainer.innerHTML = "";
+// GET /data: Returns the exact unified root structure the frontend loop requires
+app.get('/data', (req, res) => {
+    const db = readDB();
     
-    data.history.forEach(log => {
-      const changeClass = log.change.startsWith("+") ? "log-pos" : "log-neg";
-      logsContainer.innerHTML += `
-        <div class="log-row">
-            <div><span class="log-time">${log.time}</span> <span>${log.name}</span></div>
-            <span class="${changeClass}">${log.change}</span>
-        </div>
-      `;
-    });
-
-    // 4. RENDER STOCK MOVEMENT BARS
-    const chartBox = document.getElementById("chart-box");
-    chartBox.innerHTML = "";
+    // Dynamic real-time calculation of overview block before serving
+    const items = db.items || [];
+    const totalProducts = items.length;
+    const totalUnitsCount = items.reduce((acc, item) => acc + (parseInt(item.qty, 10) || 0), 0);
+    const lowStockCount = items.filter(item => (item.status || "").toUpperCase() === "LOW").length;
     
-    data.movement.forEach(move => {
-       chartBox.innerHTML += `
-          <div class="chart-row">
-             <span class="day">${move.day}</span>
-             <div class="bar" style="--width: ${move.percentage}%;"></div>
-          </div>
-       `;
-    });
+    db.overview = {
+        products: totalProducts,
+        totalUnits: totalUnitsCount.toLocaleString(),
+        lowStock: lowStockCount,
+        inventoryValue: db.overview?.inventoryValue || "RM 0",
+        time: new Date().toLocaleString('en-GB', { hour12: false }) // Current timestamp (2026 format)
+    };
 
-  } catch (error) {
-     console.error("Error communicating with IoT layout API:", error);
-  }
-}
-
-// OPTIONAL: HANDLES CLICKING TO ADD/POST NEW ITEM OVER API
-async function addItem() {
-    // Mimics structure if you want to push data later
-    const name = prompt("Enter Item Name:");
-    if (!name) return;
-    await fetch(API + "/add", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name })
-    });
-    load();
-}
-
-// LOCAL SEARCH ACCELERATOR
-document.getElementById("search-bar").addEventListener("input", (e) => {
-    currentSearchQuery = e.target.value;
-    load(); // Instantly update view against loaded dataset
+    res.json(db);
 });
 
-// REALTIME LOOPS (Every 1 second)
-setInterval(load, 1000);
-load();
+// POST /add: Receives incoming data from frontend or ESP, saves it, and appends history.change
+app.post('/add', (req, res) => {
+    const db = readDB();
+    const qtyInput = parseInt(req.body.qty, 10) || 1; // Default to 1 unit if omitted
+
+    const newItem = {
+        id: Date.now(), // Unique numeric key for deletion
+        name: req.body.name || "Unknown Item",
+        rack: req.body.rack || "N/A",
+        qty: qtyInput,
+        status: qtyInput <= 5 ? "LOW" : "Normal",
+        price: req.body.price || "RM 0",
+        updated: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+
+    db.items = db.items || [];
+    db.items.push(newItem);
+
+    // Append standard tracking structure with clear explicit matching string modifier logs
+    db.history = db.history || [];
+    db.history.unshift({
+        time: newItem.updated,
+        name: newItem.name,
+        change: `+${qtyInput}` // Formats cleanly into tracking log.change metric block
+    });
+
+    writeDB(db);
+    res.status(201).json({ success: true, item: newItem });
+});
+
+// DELETE /remove/:id: Deletes targeting matching numeric element IDs
+app.delete('/remove/:id', (req, res) => {
+    const targetId = parseInt(req.params.id, 10);
+    const db = readDB();
+    
+    db.items = db.items || [];
+    const itemToRemove = db.items.find(item => item.id === targetId);
+
+    if (!itemToRemove) {
+        return res.status(404).json({ error: "Item not found" });
+    }
+
+    // Log the drop event out inside your history array
+    db.history = db.history || [];
+    db.history.unshift({
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        name: itemToRemove.name,
+        change: `-${itemToRemove.qty}` // Captures the exact value dropped out
+    });
+
+    db.items = db.items.filter(item => item.id !== targetId);
+    
+    writeDB(db);
+    res.json({ success: true, removedId: targetId });
+});
+
+app.listen(PORT, () => {
+    console.log(`🚀 API synchronization network running active on port ${PORT}`);
+});
