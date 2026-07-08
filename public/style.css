@@ -10,7 +10,7 @@ body {
   padding: 15px;
   height: 100vh;
   width: 100vw;
-  overflow: hidden; /* Hard block on any global page scrolling */
+  overflow: hidden; 
   position: relative;
   display: flex;
   align-items: center;
@@ -18,16 +18,11 @@ body {
   background-color: #0b0f17;
 }
 
-/* --- ISOLATED ANIMATION LAYER (PERFECT FIXED HEIGHT) --- */
 body::after {
   content: "";
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
+  top: 0; left: 0; width: 100vw; height: 100vh;
   z-index: -2;
-  /* Tech Grid Matrix Pattern */
   background-image: 
     linear-gradient(rgba(51, 65, 85, 0.15) 1px, transparent 1px),
     linear-gradient(90deg, rgba(51, 65, 85, 0.15) 1px, transparent 1px),
@@ -36,7 +31,6 @@ body::after {
   animation: techGridPulse 22s ease infinite;
 }
 
-/* Ambient secondary glow field */
 body::before {
   content: "";
   position: fixed;
@@ -51,7 +45,7 @@ body::before {
 .dashboard {
   width: 100%;
   max-width: 1100px;
-  height: calc(100vh - 30px); /* Exactly fills window minus body padding */
+  height: calc(100vh - 30px); 
   display: flex;
   flex-direction: column;
   background-color: rgba(30, 41, 59, 0.75); 
@@ -63,7 +57,6 @@ body::before {
   box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6);
 }
 
-/* HEADER STYLE */
 .header {
   display: flex;
   justify-content: space-between;
@@ -96,11 +89,8 @@ body::before {
   box-shadow: 0 0 10px #22c55e;
 }
 
-.timestamp {
-  color: #94a3b8;
-}
+.timestamp { color: #94a3b8; }
 
-/* METRICS OVERVIEW PANELS */
 .metrics-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -114,9 +104,7 @@ body::before {
   border-right: 1px solid rgba(51, 65, 85, 0.5);
 }
 
-.metric-box:last-child {
-  border-right: none;
-}
+.metric-box:last-child { border-right: none; }
 
 .metric-box .label {
   display: block;
@@ -126,15 +114,10 @@ body::before {
   margin-bottom: 3px;
 }
 
-.metric-box h2 {
-  font-size: 1.5rem;
-  font-weight: 600;
-}
-
+.metric-box h2 { font-size: 1.5rem; font-weight: 600; }
 .text-low { color: #ef4444; text-shadow: 0 0 8px rgba(239, 68, 68, 0.2); }
 .status-normal { color: #38bdf8; }
 
-/* ACTION BAR */
 .action-bar {
   display: flex;
   justify-content: space-between;
@@ -172,12 +155,27 @@ body::before {
   font-size: 0.9rem;
 }
 
-.btn-add:hover { 
-  background-color: #1d4ed8; 
+.btn-add:hover {
+  background-color: #1d4ed8;
   box-shadow: 0 0 12px rgba(37, 99, 235, 0.4);
 }
 
-/* STOCK TABLE CONTAINER (Handles internal overflow scrolls safely) */
+.btn-delete {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid #ef4444;
+  color: #fca5a5;
+  padding: 3px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+
+.btn-delete:hover {
+  background: #ef4444;
+  color: white;
+}
+
 .table-container {
   padding: 10px 20px;
   flex: 1; 
@@ -207,7 +205,6 @@ body::before {
   font-size: 0.9rem;
 }
 
-/* LOWER PANELS MIX */
 .lower-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -224,9 +221,7 @@ body::before {
   flex-direction: column;
 }
 
-.panel:last-child {
-  border-right: none;
-}
+.panel:last-child { border-right: none; }
 
 .panel h3 {
   font-size: 0.95rem;
@@ -254,7 +249,6 @@ body::before {
 .log-pos { color: #22c55e; font-weight: bold; }
 .log-neg { color: #ef4444; font-weight: bold; }
 
-/* CSS BAR CHART */
 .chart-container {
   display: flex;
   flex-direction: column;
@@ -283,7 +277,6 @@ body::before {
   box-shadow: 0 0 8px rgba(59, 130, 246, 0.3);
 }
 
-/* --- ANIMATION KEYFRAMES --- */
 @keyframes techGridPulse {
   0% { background-position: 0px 0px, 0px 0px, 0% 50%; }
   50% { background-position: 0px 0px, 0px 0px, 100% 50%; }
