@@ -163,10 +163,11 @@ app.delete('/remove/:id', (req, res) => {
 });
 
 // --- 🌐 FALLBACK ROUTE ---
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, "public", "index.html"));
-});
+app.use(express.static(path.join(__dirname, "public")));
 
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
 app.listen(PORT, () => {
     console.log(`🚀 API synchronization network running active on port ${PORT}`);
 });
