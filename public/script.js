@@ -1,3 +1,19 @@
+<td><strong>${item.name}</strong></td>
+<td>${item.rack}</td>
+<td>${item.qty}</td>
+<td class="${statusClass}">${item.status}</td>
+<td>${item.price}</td>
+<td>${item.updated}</td> ```
+But if you look back at your HTML table header (`<thead>`), column #6 is actually marked as **`Action`** (the Delete button container). Also, your backend code doesn't generate an `item.updated` property anymore; it calculates timestamps dynamically inside the history logging track!
+
+Because of this, your columns are misaligned, and your **Delete button is completely missing from the UI**, preventing you from removing entries.
+
+---
+
+### 🛠️ The Fix
+Here is your exact `script.js` file with the table template row fixed. It swaps `${item.updated}` with a working dynamic **Delete Button** that binds cleanly to your backend's `item.id`, instantly resolving the alignment and unlocking full removal capability.
+
+```javascript
 const API = ""; 
 let currentSearchQuery = "";
 
@@ -27,6 +43,7 @@ async function load() {
 
     filteredItems.forEach(item => {
       const statusClass = item.status.toUpperCase() === "LOW" ? "text-low" : "status-normal";
+      // FIX: Changed the last column from raw text string to the actual working action delete button element
       tbody.innerHTML += `
         <tr>
           <td><strong>${item.name}</strong></td>
@@ -34,7 +51,11 @@ async function load() {
           <td>${item.qty}</td>
           <td class="${statusClass}">${item.status}</td>
           <td>${item.price}</td>
-          <td>${item.updated}</td>
+          <td>
+            <button onclick="removeItem(${item.id})" style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #fca5a5; padding: 3px 8px; border-radius: 4px; cursor: pointer;">
+              Delete
+            </button>
+          </td>
         </tr>
       `;
     });
@@ -71,23 +92,32 @@ async function load() {
   }
 }
 
-// OPTIONAL: HANDLES CLICKING TO ADD/POST NEW ITEM OVER API
+// HANDLES CLICKING TO ADD/POST NEW ITEM OVER API
 async function addItem() {
-    // Mimics structure if you want to push data later
     const name = prompt("Enter Item Name:");
     if (!name) return;
+    const rack = prompt("Enter Rack Location (e.g., A-01):") || "N/A";
+    const qty = parseInt(prompt("Enter Quantity Count:"), 10) || 0;
+    const price = prompt("Enter Unit Price (e.g., RM 120):") || "RM 0";
+
     await fetch(API + "/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name })
+        body: JSON.stringify({ name: name, rack: rack, qty: qty, price: price })
     });
+    load();
+}
+
+// NEW: CONNECTOR LINK TO EXECUTE LIVE REMOVAL ALONG BACKEND ENDPOINT
+async function removeItem(id) {
+    await fetch(`${API}/remove/${id}`, { method: "DELETE" });
     load();
 }
 
 // LOCAL SEARCH ACCELERATOR
 document.getElementById("search-bar").addEventListener("input", (e) => {
     currentSearchQuery = e.target.value;
-    load(); // Instantly update view against loaded dataset
+    load(); 
 });
 
 // REALTIME LOOPS (Every 1 second)
