@@ -1,95 +1,95 @@
-const express = require('express');
-const fs = require('fs');
-const path = require('path');
-const cors = require('cors');
+const API = ""; 
+let currentSearchQuery = "";
 
-const app = express();
-const PORT = process.env.PORT || 3000;
-const DATA_FILE = path.join(__dirname, 'public');
+// LOAD ALL DATA FROM BACKEND API
+async function load() {
+  try {
+    const res = await fetch(API + "/data");
+    const data = await res.json();
 
-// Middleware
-app.use(cors()); // Allows your GitHub Pages / frontend to connect without CORS errors
-app.use(express.json());
-
-// Helper function to read data safely
-const readData = () => {
-    try {
-        const raw = fs.readFileSync(DATA_FILE, 'utf8');
-        return JSON.parse(raw);
-    } catch (err) {
-        // Default structural fallback if data.json is missing or corrupted
-        return { overview: {}, items: [], history: [], movement: [] };
-    }
-};
-
-// Helper function to write data safely
-const writeData = (data) => {
-    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
-};
-
-// --- API ENDPOINTS ---
-
-// GET: Fetch individual sections matching your dashboard's Promise.all requests
-app.get('/overview', (req, res) => {
-    res.json(readData().overview || {});
-});
-
-app.get('/items', (req, res) => {
-    res.json(readData().items || []);
-});
-
-app.get('/history', (req, res) => {
-    res.json(readData().history || []);
-});
-
-app.get('/movement', (req, res) => {
-    res.json(readData().movement || []);
-});
-
-// POST: Add new item (triggered by dashboard manual add or ESP node transmission)
-app.post('/items', (req, res) => {
-    const db = readData();
-    const newItem = {
-        id: Date.now(), // Generate unique numeric ID timestamp
-        name: req.body.name || "Unknown Item",
-        rack: req.body.rack || "N/A",
-        qty: parseInt(req.body.qty, 10) || 0,
-        status: req.body.status || "Normal",
-        price: req.body.price || "RM0.00",
-        updated: req.body.updated || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    };
-
-    db.items.push(newItem);
-    
-    // Also log this execution into the transaction history array automatically
-    const newLog = {
-        time: newItem.updated,
-        name: newItem.name,
-        change: `+${newItem.qty}`
-    };
-    db.history.unshift(newLog); // Push new activity logs to the top
-
-    writeData(db);
-    res.status(201).json(newItem);
-});
-
-// DELETE: Remove item by ID (triggered by clicking "Remove" on your dashboard layout)
-app.delete('/items/:id', (req, res) => {
-    const targetId = parseInt(req.params.id, 10);
-    const db = readData();
-    
-    const initialLength = db.items.length;
-    db.items = db.items.filter(item => item.id !== targetId);
-
-    if (db.items.length === initialLength) {
-        return res.status(404).json({ error: "Item target not found" });
+    // 1. UPDATE OVERVIEW COUNTERS DYNAMICALLY
+    document.getElementById("total-products").innerText = data.overview.products || 0;
+    document.getElementById("total-units").innerText = data.overview.totalUnits || 0;
+    document.getElementById("low-stock").innerText = data.overview.lowStock || 0;
+    document.getElementById("inv-value").innerText = data.overview.inventoryValue || "RM 0";
+    if(data.overview.time) {
+        document.getElementById("live-time").innerText = data.overview.time;
     }
 
-    writeData(db);
-    res.json({ success: true, removedId: targetId });
+    // 2. RENDER THE MAIN ITEMS TABLE (WITH CLIENT-SIDE SEARCH FILTERING)
+    const tbody = document.getElementById("stock-tbody");
+    tbody.innerHTML = "";
+
+    const filteredItems = data.items.filter(item => 
+      item.name.toLowerCase().includes(currentSearchQuery.toLowerCase()) ||
+      item.rack.toLowerCase().includes(currentSearchQuery.toLowerCase())
+    );
+
+    filteredItems.forEach(item => {
+      const statusClass = item.status.toUpperCase() === "LOW" ? "text-low" : "status-normal";
+      tbody.innerHTML += `
+        <tr>
+          <td><strong>${item.name}</strong></td>
+          <td>${item.rack}</td>
+          <td>${item.qty}</td>
+          <td class="${statusClass}">${item.status}</td>
+          <td>${item.price}</td>
+          <td>${item.updated}</td>
+        </tr>
+      `;
+    });
+
+    // 3. RENDER RECENT TRANSACTIONS LOG
+    const logsContainer = document.getElementById("transactions-list");
+    logsContainer.innerHTML = "";
+    
+    data.history.forEach(log => {
+      const changeClass = log.change.startsWith("+") ? "log-pos" : "log-neg";
+      logsContainer.innerHTML += `
+        <div class="log-row">
+            <div><span class="log-time">${log.time}</span> <span>${log.name}</span></div>
+            <span class="${changeClass}">${log.change}</span>
+        </div>
+      `;
+    });
+
+    // 4. RENDER STOCK MOVEMENT BARS
+    const chartBox = document.getElementById("chart-box");
+    chartBox.innerHTML = "";
+    
+    data.movement.forEach(move => {
+       chartBox.innerHTML += `
+          <div class="chart-row">
+             <span class="day">${move.day}</span>
+             <div class="bar" style="--width: ${move.percentage}%;"></div>
+          </div>
+       `;
+    });
+
+  } catch (error) {
+     console.error("Error communicating with IoT layout API:", error);
+  }
+}
+
+// OPTIONAL: HANDLES CLICKING TO ADD/POST NEW ITEM OVER API
+async function addItem() {
+    // Mimics structure if you want to push data later
+    const name = prompt("Enter Item Name:");
+    if (!name) return;
+    await fetch(API + "/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name })
+    });
+    load();
+}
+
+// LOCAL SEARCH ACCELERATOR
+document.getElementById("search-bar").addEventListener("input", (e) => {
+    currentSearchQuery = e.target.value;
+    load(); // Instantly update view against loaded dataset
 });
 
-// Boot Server
-app.listen(PORT, () => {
-    console.log(`🚀 Warehouse API Server active on port :${PORT}`);
-});
+// REALTIME LOOPS (Every 1 second)
+setInterval(load, 1000);
+load();
