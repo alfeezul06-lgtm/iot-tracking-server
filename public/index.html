@@ -10,10 +10,10 @@
 
 <div class="dashboard">
     <header class="header">
-        <div class="brand">📦 WAREHOUSE STORAGE ENGINE</div>
+        <div class="brand">📦 MALAYSIA WAREHOUSE ENGINE</div>
         <div class="system-status">
-            <span class="status-indicator"></span> NETWORK STATUS ONLINE
-            <span id="live-time" class="timestamp">--/--/---- --:--</span>
+            <span class="status-indicator"></span> MYT NETWORK ONLINE
+            <span id="live-time" class="timestamp">--/--/---- --:--:-- (MYT)</span>
         </div>
     </header>
 
@@ -59,7 +59,10 @@
 
     <div class="lower-grid">
         <div class="panel">
-            <h3>Transaction Activity Logs</h3>
+            <div class="panel-header-flex">
+                <h3>Transaction Activity Logs</h3>
+                <button class="btn-clear-logs" onclick="clearLogs()">Clear Log</button>
+            </div>
             <div id="transactions-list" class="list-container"></div>
         </div>
         <div class="panel">
