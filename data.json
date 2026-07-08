@@ -1,0 +1,23 @@
+{
+  "overview": {
+    "products": 35,
+    "totalUnits": "1,245",
+    "lowStock": 4,
+    "inventoryValue": "RM 52,300",
+    "time": "08/07/2026 20:45"
+  },
+  "items": [
+    { "name": "Motor", "rack": "A-01", "qty": 25, "status": "Normal", "price": "RM120", "updated": "20:42" },
+    { "name": "Sensor", "rack": "B-03", "qty": 5, "status": "LOW", "price": "RM25", "updated": "20:40" }
+  ],
+  "history": [
+    { "time": "20:42", "name": "Motor", "change": "+10" },
+    { "time": "20:40", "name": "Sensor", "change": "-2" }
+  ],
+  "movement": [
+    { "day": "Mon", "percentage": 40 },
+    { "day": "Tue", "percentage": 60 },
+    { "day": "Wed", "percentage": 50 },
+    { "day": "Thu", "percentage": 70 }
+  ]
+}
