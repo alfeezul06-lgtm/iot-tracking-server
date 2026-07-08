@@ -72,7 +72,7 @@ async function load() {
 async function addItem() {
     const name = prompt("Item Label Description:");
     if (!name) return;
-    const rack = prompt("Assigned Bin location:") || "Zone-A";
+    const rack = prompt("Assigned Storage Zone (e.g., Zone-A):") || "Zone-A";
     const qty = parseInt(prompt("Starting Volume Units:"), 10) || 0;
     const price = prompt("Evaluated Unit Cost:") || "RM 0";
 
@@ -86,7 +86,7 @@ async function addItem() {
 
 async function editItem(id, currentName, currentRack, currentQty, currentPrice) {
     const name = prompt("Modify Description:", currentName) || currentName;
-    const rack = prompt("Modify Bin Location:", currentRack) || currentRack;
+    const rack = prompt("Modify Zone Allocation:", currentRack) || currentRack;
     const qty = parseInt(prompt("Modify Quantities Available:", currentQty), 10);
     const price = prompt("Modify Unit Valuation Cost:", currentPrice) || currentPrice;
 
@@ -100,8 +100,39 @@ async function editItem(id, currentName, currentRack, currentQty, currentPrice) 
     load();
 }
 
+// SIMULATED MODAL ACTIONS
+function openScanModal() {
+    document.getElementById("scan-name").value = "";
+    document.getElementById("scan-qty").value = "1";
+    document.getElementById("scan-price").value = "RM ";
+    document.getElementById("scan-modal").style.display = "flex";
+}
+
+function closeScanModal() {
+    document.getElementById("scan-modal").style.display = "none";
+}
+
+async function submitScanPayload() {
+    const name = document.getElementById("scan-name").value;
+    if (!name) return alert("Item Name field required!");
+    
+    const rack = document.getElementById("scan-rack").value;
+    const status = document.getElementById("scan-status").value;
+    const qty = parseInt(document.getElementById("scan-qty").value, 10) || 1;
+    const price = document.getElementById("scan-price").value || "RM 0";
+
+    await fetch(API + "/scan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, rack, status, qty, price })
+    });
+
+    closeScanModal();
+    load();
+}
+
 async function clearLogs() {
-    if (!confirm("Flush the operational history tracking log?")) return;
+    if (!confirm("Flush operational activity tracking logs?")) return;
     await fetch(API + "/clear-logs", { method: "POST" });
     load();
 }
@@ -116,5 +147,5 @@ document.getElementById("search-bar").addEventListener("input", (e) => {
     load(); 
 });
 
-setInterval(load, 1000);
 load();
+setInterval(load, 1000);
