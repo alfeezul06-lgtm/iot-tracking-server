@@ -32,6 +32,25 @@ const readDB = () => {
     }
 };
 
+const date = new Date();
+
+const options = {
+  timeZone: 'Asia/Kuala_Lumpur',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+  hour12: false // Set to true for 12-hour (am/pm) format
+};
+
+const formatter = new Intl.DateTimeFormat('en-MY', options);
+const mytDateString = formatter.format(date);
+
+console.log(mytDateString); 
+// Output format: e.g., 09/07/2026, 14:16:00
+
 const writeDB = (data) => {
     fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
 };
