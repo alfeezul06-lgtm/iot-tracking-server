@@ -41,6 +41,7 @@ const writeDB = (data) => {
 };
 
 // GET /data
+// GET /data - Core dashboard pull endpoint with dynamic stock volume tracking
 app.get('/data', (req, res) => {
     const db = readDB();
     const items = db.items || [];
@@ -48,6 +49,7 @@ app.get('/data', (req, res) => {
     const totalUnitsCount = items.reduce((acc, item) => acc + (parseInt(item.qty, 10) || 0), 0);
     const lowStockCount = items.filter(item => (item.status || "").toUpperCase() === "LOW").length;
     
+    // Calculate global overview parameters
     db.overview = {
         products: totalProducts,
         totalUnits: totalUnitsCount.toLocaleString(),
@@ -55,6 +57,31 @@ app.get('/data', (req, res) => {
         inventoryValue: db.overview?.inventoryValue || "RM 0",
         time: getMYTimestamp('full') + " (MYT)"
     };
+
+    // --- 📊 DYNAMIC VECTOR VOLUME CALCULATION ---
+    // Group totals by rack location to see relative volume distribution
+    const rackVolumes = {};
+    items.forEach(item => {
+        const rack = item.rack || "Zone-A";
+        rackVolumes[rack] = (rackVolumes[rack] || 0) + (parseInt(item.qty, 10) || 0);
+    });
+
+    // Find the highest volume rack to use as a 100% baseline scale ceiling
+    const maxVolume = Math.max(...Object.values(rackVolumes), 0);
+
+    // Map your top active inventory storage zones into the movement array dynamically
+    const standardZones = ["Zone-A", "Zone-B", "Zone-C", "Zone-D", "Zone-E"];
+    db.movement = standardZones.map(zone => {
+        const currentQty = rackVolumes[zone] || 0;
+        // Calculate relative vector percentage against maximum peak stock volume safely
+        const percentage = maxVolume > 0 ? Math.round((currentQty / maxVolume) * 100) : 0;
+        return {
+            day: zone, // Swaps standard weekdays with actual relative target zones
+            percentage: percentage
+        };
+    });
+    // --------------------------------------------
+
     res.json(db);
 });
 
