@@ -29,8 +29,8 @@ const readDB = () => {
             items: [],
             history: [],
             movement: [
-                { "day": "Mon", "percentage": 0 }, { "day": "Tue", "percentage": 0 },
-                { "day": "Wed", "percentage": 0 }, { "day": "Thu", "percentage": 0 }, { "day": "Fri", "percentage": 0 }
+                { "day": "Zone-A", "percentage": 0 }, { "day": "Zone-B", "percentage": 0 },
+                { "day": "Zone-C", "percentage": 0 }, { "day": "Zone-D", "percentage": 0 }, { "day": "Zone-E", "percentage": 0 }
             ]
         };
     }
@@ -40,8 +40,7 @@ const writeDB = (data) => {
     fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
 };
 
-// GET /data
-// GET /data - Core dashboard pull endpoint with dynamic stock volume tracking
+// GET /data - Core dashboard pull endpoint with dynamic stock level tracking
 app.get('/data', (req, res) => {
     const db = readDB();
     const items = db.items || [];
@@ -49,7 +48,6 @@ app.get('/data', (req, res) => {
     const totalUnitsCount = items.reduce((acc, item) => acc + (parseInt(item.qty, 10) || 0), 0);
     const lowStockCount = items.filter(item => (item.status || "").toUpperCase() === "LOW").length;
     
-    // Calculate global overview parameters
     db.overview = {
         products: totalProducts,
         totalUnits: totalUnitsCount.toLocaleString(),
@@ -58,34 +56,26 @@ app.get('/data', (req, res) => {
         time: getMYTimestamp('full') + " (MYT)"
     };
 
-    // --- 📊 DYNAMIC VECTOR VOLUME CALCULATION ---
-    // Group totals by rack location to see relative volume distribution
+    // Group totals by location to determine storage density
     const rackVolumes = {};
     items.forEach(item => {
         const rack = item.rack || "Zone-A";
         rackVolumes[rack] = (rackVolumes[rack] || 0) + (parseInt(item.qty, 10) || 0);
     });
 
-    // Find the highest volume rack to use as a 100% baseline scale ceiling
     const maxVolume = Math.max(...Object.values(rackVolumes), 0);
-
-    // Map your top active inventory storage zones into the movement array dynamically
     const standardZones = ["Zone-A", "Zone-B", "Zone-C", "Zone-D", "Zone-E"];
+    
     db.movement = standardZones.map(zone => {
         const currentQty = rackVolumes[zone] || 0;
-        // Calculate relative vector percentage against maximum peak stock volume safely
         const percentage = maxVolume > 0 ? Math.round((currentQty / maxVolume) * 100) : 0;
-        return {
-            day: zone, // Swaps standard weekdays with actual relative target zones
-            percentage: percentage
-        };
+        return { day: zone, percentage: percentage };
     });
-    // --------------------------------------------
 
     res.json(db);
 });
 
-// POST /add - Manual web dashboard adding
+// POST /add - Manual web dashboard additions
 app.post('/add', (req, res) => {
     const db = readDB();
     const qtyInput = parseInt(req.body.qty, 10) || 1; 
@@ -94,7 +84,7 @@ app.post('/add', (req, res) => {
     const newItem = {
         id: Date.now(), 
         name: req.body.name || "Unknown Item",
-        rack: req.body.rack || "N/A",
+        rack: req.body.rack || "Zone-A",
         qty: qtyInput,
         status: qtyInput <= 5 ? "LOW" : "Normal",
         price: req.body.price || "RM 0",
@@ -111,7 +101,7 @@ app.post('/add', (req, res) => {
     res.status(201).json({ success: true, item: newItem });
 });
 
-// POST /edit - Modifying an existing item structure
+// POST /edit - Modifying inventory entries
 app.post('/edit', (req, res) => {
     const db = readDB();
     const targetId = parseInt(req.body.id, 10);
@@ -120,10 +110,8 @@ app.post('/edit', (req, res) => {
 
     db.items = db.items || [];
     let item = db.items.find(i => i.id === targetId);
-    
     if (!item) return res.status(404).json({ error: "Item not found" });
 
-    // Track historical delta shifts
     const delta = qtyInput - item.qty;
     if (delta !== 0) {
         db.history = db.history || [];
@@ -145,12 +133,13 @@ app.post('/edit', (req, res) => {
     res.json({ success: true, item });
 });
 
-// POST /scan - Hardware entry endpoint supporting variable quantity shifts
+// POST /scan - Hardware integration endpoint supporting variables quantities
 app.post('/scan', (req, res) => {
     const db = readDB();
     const deviceName = req.body.name || "ESP32 Scan Node";
     const scanStatus = (req.body.status || "IN").toUpperCase();
-    const scanQty = parseInt(req.body.qty, 10) || 1; // Extracts hardware transmission quantity
+    const scanQty = parseInt(req.body.qty, 10) || 1;
+    const scanPrice = req.body.price || "RM 0";
     const timestamp = getMYTimestamp('time');
 
     db.history = db.history || [];
@@ -169,15 +158,16 @@ app.post('/scan', (req, res) => {
         
         existingItem.qty = currentQty;
         existingItem.status = currentQty <= 5 ? "LOW" : "Normal";
+        if(req.body.price) existingItem.price = scanPrice; // Update price if specified by hardware
         existingItem.updated = timestamp;
     } else {
         db.items.push({
             id: Date.now(),
             name: deviceName,
-            rack: "Gate-01",
+            rack: req.body.rack || "Zone-A",
             qty: scanStatus === "IN" ? scanQty : 0,
             status: scanQty <= 5 ? "LOW" : "Normal",
-            price: "RM 0",
+            price: scanPrice,
             updated: timestamp
         });
     }
@@ -186,7 +176,7 @@ app.post('/scan', (req, res) => {
     res.status(200).json({ success: true });
 });
 
-// POST /clear-logs - Wipes the operational activity timeline
+// POST /clear-logs - Wipes the operational activity logs array
 app.post('/clear-logs', (req, res) => {
     const db = readDB();
     db.history = [];
@@ -201,7 +191,6 @@ app.delete('/remove/:id', (req, res) => {
     
     db.items = db.items || [];
     const itemToRemove = db.items.find(item => item.id === targetId);
-
     if (!itemToRemove) return res.status(404).json({ error: "Item not found" });
 
     db.history = db.history || [];
@@ -217,5 +206,4 @@ app.use(express.static(path.join(__dirname, "public")));
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
-
 app.listen(PORT, () => console.log(`🚀 Malaysia Storage Core engine online on port ${PORT}`));
