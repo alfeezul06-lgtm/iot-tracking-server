@@ -2,18 +2,31 @@ const express = require("express");
 const path = require("path");
 
 const app = express();
-app.use(express.json());
 
-// 🔥 Serve HTML from /public
+// ✅ Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// ✅ Serve static files
 app.use(express.static(path.join(__dirname, "public")));
 
+// 🔐 CORS (important if ESP32 / browser different origin)
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET, POST, DELETE");
+  res.header("Access-Control-Allow-Headers", "Content-Type");
+  next();
+});
+
+// 📦 Data storage
 let items = {};
 let history = [];
 
-// 🕒 Malaysia Time
+// 🕒 Malaysia Time (clean format)
 function getTime() {
-  return new Date().toLocaleString("en-MY", {
-    timeZone: "Asia/Kuala_Lumpur"
+  return new Date().toLocaleString("en-GB", {
+    timeZone: "Asia/Kuala_Lumpur",
+    hour12: false
   });
 }
 
@@ -21,9 +34,11 @@ function getTime() {
 app.post("/scan", (req, res) => {
   const { name } = req.body;
 
-  if (!name) return res.json({ error: "No name" });
+  if (!name) {
+    return res.status(400).json({ error: "No name provided" });
+  }
 
-  // Toggle IN / OUT
+  // 🔄 Toggle status
   let status = items[name] === "IN" ? "OUT" : "IN";
   items[name] = status;
 
@@ -33,27 +48,40 @@ app.post("/scan", (req, res) => {
     time: getTime()
   };
 
+  // 🔥 Limit history (prevent memory issue)
   history.unshift(record);
+  if (history.length > 50) history.pop();
 
   res.json(record);
 });
 
-// 📊 Dashboard Data
+// 📊 Dashboard data
 app.get("/data", (req, res) => {
-  res.json({ items, history });
+  res.json({
+    items,
+    history
+  });
 });
 
 // ❌ Remove item
 app.delete("/remove/:name", (req, res) => {
-  delete items[req.params.name];
-  res.json({ success: true });
+  const name = req.params.name;
+
+  if (items[name]) {
+    delete items[name];
+    return res.json({ success: true });
+  }
+
+  res.status(404).json({ error: "Item not found" });
 });
 
-// 🔥 Root route fix
+// 🔥 Root route (fix blank page issue)
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 // 🚀 Start server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Server running on " + PORT));
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
