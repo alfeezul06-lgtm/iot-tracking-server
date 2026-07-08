@@ -87,13 +87,6 @@ button {
 <script>
 const API = "";
 
-// 🔥 Auto detect (Render friendly)
-if (window.location.hostname.includes("render.com")) {
-  API = "";
-} else {
-  API = "";
-}
-
 // LOAD DATA
 async function load() {
   const res = await fetch(API + "/data");
