@@ -5,7 +5,7 @@ const cors = require('cors');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const DATA_FILE = path.join(__dirname, 'package.json');
+const DATA_FILE = path.join(__dirname, 'public');
 
 // Middleware
 app.use(cors()); // Allows your GitHub Pages / frontend to connect without CORS errors
