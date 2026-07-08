@@ -5,13 +5,14 @@ const cors = require('cors');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const DATA_FILE = path.join(__dirname, 'public');
+
+// FIX: Point this directly to your database file, not a directory folder name!
+const DATA_FILE = path.join(__dirname, 'data.json');
 
 app.use(cors());
 app.use(express.json());
 
-// --- 🌐 NEW: SERVE FRONTEND DASHBOARD FILES ---
-// This tells Express to look inside the root directory for index.html, style.css, and script.js
+// --- 🌐 SERVE FRONTEND DASHBOARD FILES ---
 app.use(express.static(__dirname));
 
 // Safely read unified structural layout database
@@ -111,12 +112,11 @@ app.delete('/remove/:id', (req, res) => {
 
     db.items = db.items.filter(item => item.id !== targetId);
     
-    writeDB(db);
+    writeDB(data = db);
     res.json({ success: true, removedId: targetId });
 });
 
-// --- 🌐 NEW: FALLBACK ROUTE ---
-// If you open the root URL, send the index.html file to the browser
+// --- 🌐 FALLBACK ROUTE ---
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
