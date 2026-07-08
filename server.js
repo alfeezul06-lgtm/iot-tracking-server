@@ -9,9 +9,15 @@ const DATA_FILE = path.join(__dirname, 'data.json');
 
 app.use(cors());
 app.use(express.json());
-
-// Serve static frontend files from root directory
 app.use(express.static(__dirname));
+
+// Helper for Malaysian Live Time (MYT)
+const getMYTimestamp = (formatType = 'time') => {
+    const options = formatType === 'full' 
+        ? { timeZone: 'Asia/Kuala_Lumpur', hour12: false, dateStyle: 'short', timeStyle: 'medium' }
+        : { timeZone: 'Asia/Kuala_Lumpur', hour12: false, hour: '2-digit', minute: '2-digit' };
+    return new Date().toLocaleString('en-GB', options);
+};
 
 const readDB = () => {
     try {
@@ -23,11 +29,8 @@ const readDB = () => {
             items: [],
             history: [],
             movement: [
-                { "day": "Mon", "percentage": 0 },
-                { "day": "Tue", "percentage": 0 },
-                { "day": "Wed", "percentage": 0 },
-                { "day": "Thu", "percentage": 0 },
-                { "day": "Fri", "percentage": 0 }
+                { "day": "Mon", "percentage": 0 }, { "day": "Tue", "percentage": 0 },
+                { "day": "Wed", "percentage": 0 }, { "day": "Thu", "percentage": 0 }, { "day": "Fri", "percentage": 0 }
             ]
         };
     }
@@ -37,7 +40,7 @@ const writeDB = (data) => {
     fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
 };
 
-// GET /data - Core dashboard pull endpoint
+// GET /data
 app.get('/data', (req, res) => {
     const db = readDB();
     const items = db.items || [];
@@ -50,16 +53,16 @@ app.get('/data', (req, res) => {
         totalUnits: totalUnitsCount.toLocaleString(),
         lowStock: lowStockCount,
         inventoryValue: db.overview?.inventoryValue || "RM 0",
-        time: new Date().toLocaleString('en-GB', { hour12: false }) 
+        time: getMYTimestamp('full') + " (MYT)"
     };
     res.json(db);
 });
 
-// POST /add - Manual web dashboard additions
+// POST /add - Manual web dashboard adding
 app.post('/add', (req, res) => {
     const db = readDB();
     const qtyInput = parseInt(req.body.qty, 10) || 1; 
-    const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const timestamp = getMYTimestamp('time');
 
     const newItem = {
         id: Date.now(), 
@@ -75,28 +78,59 @@ app.post('/add', (req, res) => {
     db.items.push(newItem);
 
     db.history = db.history || [];
-    db.history.unshift({
-        time: timestamp,
-        name: newItem.name,
-        change: `+${qtyInput}` 
-    });
+    db.history.unshift({ time: timestamp, name: newItem.name, change: `+${qtyInput}` });
 
     writeDB(db);
     res.status(201).json({ success: true, item: newItem });
 });
 
-// POST /scan - Hardware node integrations for ESP32
+// POST /edit - Modifying an existing item structure
+app.post('/edit', (req, res) => {
+    const db = readDB();
+    const targetId = parseInt(req.body.id, 10);
+    const qtyInput = parseInt(req.body.qty, 10) || 0;
+    const timestamp = getMYTimestamp('time');
+
+    db.items = db.items || [];
+    let item = db.items.find(i => i.id === targetId);
+    
+    if (!item) return res.status(404).json({ error: "Item not found" });
+
+    // Track historical delta shifts
+    const delta = qtyInput - item.qty;
+    if (delta !== 0) {
+        db.history = db.history || [];
+        db.history.unshift({
+            time: timestamp,
+            name: `${req.body.name || item.name} (Mod)`,
+            change: delta > 0 ? `+${delta}` : `${delta}`
+        });
+    }
+
+    item.name = req.body.name || item.name;
+    item.rack = req.body.rack || item.rack;
+    item.qty = qtyInput;
+    item.status = qtyInput <= 5 ? "LOW" : "Normal";
+    item.price = req.body.price || item.price;
+    item.updated = timestamp;
+
+    writeDB(db);
+    res.json({ success: true, item });
+});
+
+// POST /scan - Hardware entry endpoint supporting variable quantity shifts
 app.post('/scan', (req, res) => {
     const db = readDB();
     const deviceName = req.body.name || "ESP32 Scan Node";
     const scanStatus = (req.body.status || "IN").toUpperCase();
-    const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const scanQty = parseInt(req.body.qty, 10) || 1; // Extracts hardware transmission quantity
+    const timestamp = getMYTimestamp('time');
 
     db.history = db.history || [];
     db.history.unshift({
         time: timestamp,
         name: `${deviceName} (${scanStatus})`,
-        change: scanStatus === "IN" ? "+1" : "-1"
+        change: scanStatus === "IN" ? `+${scanQty}` : `-${scanQty}`
     });
 
     db.items = db.items || [];
@@ -104,7 +138,7 @@ app.post('/scan', (req, res) => {
 
     if (existingItem) {
         let currentQty = parseInt(existingItem.qty, 10) || 0;
-        currentQty = scanStatus === "IN" ? currentQty + 1 : Math.max(0, currentQty - 1);
+        currentQty = scanStatus === "IN" ? currentQty + scanQty : Math.max(0, currentQty - scanQty);
         
         existingItem.qty = currentQty;
         existingItem.status = currentQty <= 5 ? "LOW" : "Normal";
@@ -114,8 +148,8 @@ app.post('/scan', (req, res) => {
             id: Date.now(),
             name: deviceName,
             rack: "Gate-01",
-            qty: scanStatus === "IN" ? 1 : 0,
-            status: "LOW",
+            qty: scanStatus === "IN" ? scanQty : 0,
+            status: scanQty <= 5 ? "LOW" : "Normal",
             price: "RM 0",
             updated: timestamp
         });
@@ -125,7 +159,15 @@ app.post('/scan', (req, res) => {
     res.status(200).json({ success: true });
 });
 
-// DELETE /remove/:id - Dashboard deletions
+// POST /clear-logs - Wipes the operational activity timeline
+app.post('/clear-logs', (req, res) => {
+    const db = readDB();
+    db.history = [];
+    writeDB(db);
+    res.json({ success: true });
+});
+
+// DELETE /remove/:id
 app.delete('/remove/:id', (req, res) => {
     const targetId = parseInt(req.params.id, 10);
     const db = readDB();
@@ -133,29 +175,16 @@ app.delete('/remove/:id', (req, res) => {
     db.items = db.items || [];
     const itemToRemove = db.items.find(item => item.id === targetId);
 
-    if (!itemToRemove) {
-        return res.status(404).json({ error: "Item not found" });
-    }
+    if (!itemToRemove) return res.status(404).json({ error: "Item not found" });
 
     db.history = db.history || [];
-    db.history.unshift({
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        name: itemToRemove.name,
-        change: `-${itemToRemove.qty}` 
-    });
-
+    db.history.unshift({ time: getMYTimestamp('time'), name: itemToRemove.name, change: `-${itemToRemove.qty}` });
     db.items = db.items.filter(item => item.id !== targetId);
     
     writeDB(db);
     res.json({ success: true, removedId: targetId });
 });
 
-app.use(express.static(path.join(__dirname, "public")));
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
-});
-
-app.listen(PORT, () => {
-    console.log(`🚀 Warehouse core engine active on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`🚀 Malaysia Storage Core engine online on port ${PORT}`));
