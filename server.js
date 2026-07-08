@@ -212,6 +212,10 @@ app.delete('/remove/:id', (req, res) => {
     res.json({ success: true, removedId: targetId });
 });
 
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+app.use(express.static(path.join(__dirname, "public")));
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
 
 app.listen(PORT, () => console.log(`🚀 Malaysia Storage Core engine online on port ${PORT}`));
