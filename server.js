@@ -5,8 +5,6 @@ const cors = require('cors');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-// FIX: Point this directly to your database file, not a directory folder name!
 const DATA_FILE = path.join(__dirname, 'data.json');
 
 app.use(cors());
@@ -62,7 +60,7 @@ app.get('/data', (req, res) => {
     res.json(db);
 });
 
-// POST /add: Receives incoming data from frontend or ESP, saves it, and appends history.change
+// POST /add: Receives incoming data from frontend manual input forms
 app.post('/add', (req, res) => {
     const db = readDB();
     const qtyInput = parseInt(req.body.qty, 10) || 1; 
@@ -91,6 +89,53 @@ app.post('/add', (req, res) => {
     res.status(201).json({ success: true, item: newItem });
 });
 
+// --- 🤖 NEW: COMPATIBILITY ENDPOINT FOR YOUR ESP32 HARDWARE ---
+// This listens to your ESP32's /scan path and maps its data directly into your schema
+app.post('/scan', (req, res) => {
+    const db = readDB();
+    
+    // Captures your ESP data (e.g., name: "ESP-Cloud-Node", status: "IN")
+    const deviceName = req.body.name || "ESP32 Scan Node";
+    const scanStatus = req.body.status || "IN";
+    const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    // 1. Log the physical device operation directly to your scrolling transaction history panel
+    db.history = db.history || [];
+    db.history.unshift({
+        time: timestamp,
+        name: `${deviceName} (${scanStatus})`,
+        change: scanStatus === "IN" ? "+1" : "-1"
+    });
+
+    // 2. Optionally insert/increment a table entry tracking items logged by this scanner node
+    db.items = db.items || [];
+    let existingItem = db.items.find(item => item.name === deviceName);
+
+    if (existingItem) {
+        let currentQty = parseInt(existingItem.qty, 10) || 0;
+        if (scanStatus === "IN") currentQty += 1;
+        else currentQty = Math.max(0, currentQty - 1); // Ensure quantities don't drop under zero
+        
+        existingItem.qty = currentQty;
+        existingItem.status = currentQty <= 5 ? "LOW" : "Normal";
+        existingItem.updated = timestamp;
+    } else {
+        // If it's a completely new tracked tag layout, initialize it
+        db.items.push({
+            id: Date.now(),
+            name: deviceName,
+            rack: "Gate-01",
+            qty: scanStatus === "IN" ? 1 : 0,
+            status: "LOW",
+            price: "RM 0",
+            updated: timestamp
+        });
+    }
+
+    writeDB(db);
+    res.status(200).json({ success: true, message: "ESP32 transmission successfully processed" });
+});
+
 // DELETE /remove/:id: Deletes targeting matching numeric element IDs
 app.delete('/remove/:id', (req, res) => {
     const targetId = parseInt(req.params.id, 10);
@@ -112,7 +157,8 @@ app.delete('/remove/:id', (req, res) => {
 
     db.items = db.items.filter(item => item.id !== targetId);
     
-    writeDB(data = db);
+    // FIX: Removed the leaked 'data = db' assignment bug
+    writeDB(db);
     res.json({ success: true, removedId: targetId });
 });
 
