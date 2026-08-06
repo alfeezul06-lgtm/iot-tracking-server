@@ -97,6 +97,8 @@ app.post('/add', (req, res) => {
 
     price: req.body.price || "RM 0",
 
+    operator: req.body.operator || "Unknown",
+
     updated: timestamp
 
 };
@@ -179,6 +181,7 @@ app.post('/scan', (req, res) => {
             qty: 0,
             price: "RM 0",
             status: "LOW",
+            operator:"ESP32"
             updated: timestamp
         };
 
