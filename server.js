@@ -82,14 +82,24 @@ app.post('/add', (req, res) => {
     const timestamp = getMYTimestamp('time');
 
     const newItem = {
-        id: Date.now(), 
-        name: req.body.name || "Unknown Item",
-        rack: req.body.rack || "Zone-A",
-        qty: qtyInput,
-        status: qtyInput <= 5 ? "LOW" : "Normal",
-        price: req.body.price || "RM 0",
-        updated: timestamp
-    };
+
+    id: Date.now(),
+
+    uid: req.body.uid || "",
+
+    name: req.body.name || "Unknown Item",
+
+    rack: req.body.rack || "Zone-A",
+
+    qty: qtyInput,
+
+    status: qtyInput <= 5 ? "LOW" : "NORMAL",
+
+    price: req.body.price || "RM 0",
+
+    updated: timestamp
+
+};
 
     db.items = db.items || [];
     db.items.push(newItem);
@@ -122,7 +132,7 @@ app.post('/edit', (req, res) => {
         });
     }
 
-    item.name = req.body.name || item.name;
+    item.uid = req.body.uid || item.uid;
     item.rack = req.body.rack || item.rack;
     item.qty = qtyInput;
     item.status = qtyInput <= 5 ? "LOW" : "Normal";
@@ -134,46 +144,103 @@ app.post('/edit', (req, res) => {
 });
 
 // POST /scan - Hardware integration endpoint supporting variables quantities
+// ================= RFID SCAN =================
 app.post('/scan', (req, res) => {
+
     const db = readDB();
-    const deviceName = req.body.name || "ESP32 Scan Node";
-    const scanStatus = (req.body.status || "IN").toUpperCase();
-    const scanQty = parseInt(req.body.qty, 10) || 1;
-    const scanPrice = req.body.price || "RM 0";
+
+    const uid = (req.body.uid || "").toUpperCase();
+    const mode = (req.body.mode || "IN").toUpperCase();
+    const qty = parseInt(req.body.qty) || 1;
+
     const timestamp = getMYTimestamp('time');
 
-    db.history = db.history || [];
-    db.history.unshift({
-        time: timestamp,
-        name: `${deviceName} (${scanStatus})`,
-        change: scanStatus === "IN" ? `+${scanQty}` : `-${scanQty}`
-    });
-
-    db.items = db.items || [];
-    let existingItem = db.items.find(item => item.name === deviceName);
-
-    if (existingItem) {
-        let currentQty = parseInt(existingItem.qty, 10) || 0;
-        currentQty = scanStatus === "IN" ? currentQty + scanQty : Math.max(0, currentQty - scanQty);
-        
-        existingItem.qty = currentQty;
-        existingItem.status = currentQty <= 5 ? "LOW" : "Normal";
-        if(req.body.price) existingItem.price = scanPrice; // Update price if specified by hardware
-        existingItem.updated = timestamp;
-    } else {
-        db.items.push({
-            id: Date.now(),
-            name: deviceName,
-            rack: req.body.rack || "Zone-A",
-            qty: scanStatus === "IN" ? scanQty : 0,
-            status: scanQty <= 5 ? "LOW" : "Normal",
-            price: scanPrice,
-            updated: timestamp
+    if (!uid) {
+        return res.status(400).json({
+            success: false,
+            message: "UID Missing"
         });
     }
 
+    db.items = db.items || [];
+    db.history = db.history || [];
+
+    // Search by UID
+    let item = db.items.find(i => i.uid === uid);
+
+    // New RFID
+    if (!item) {
+
+        item = {
+            id: Date.now(),
+            uid: uid,
+            name: "New Item",
+            rack: "Zone-A",
+            qty: 0,
+            price: "RM 0",
+            status: "LOW",
+            updated: timestamp
+        };
+
+        db.items.push(item);
+    }
+
+    // STOCK IN
+    if (mode === "STOCK_IN" || mode === "IN") {
+
+        item.qty += qty;
+
+    }
+
+    // STOCK OUT
+    else if (mode === "STOCK_OUT" || mode === "OUT") {
+
+        item.qty = Math.max(0, item.qty - qty);
+
+    }
+
+    // Update Status
+    item.status = item.qty <= 5 ? "LOW" : "NORMAL";
+    item.updated = timestamp;
+
+    // Save History
+    db.history.unshift({
+
+        time: timestamp,
+
+        uid: uid,
+
+        name: item.name,
+
+        change:
+            (mode === "STOCK_IN" || mode === "IN")
+                ? "+" + qty
+                : "-" + qty
+
+    });
+
     writeDB(db);
-    res.status(200).json({ success: true });
+
+    res.json({
+
+        success: true,
+
+        uid: item.uid,
+
+        name: item.name,
+
+        qty: item.qty,
+
+        rack: item.rack,
+
+        price: item.price,
+
+        status: item.status,
+
+        updated: item.updated
+
+    });
+
 });
 
 // POST /clear-logs - Wipes the operational activity logs array
