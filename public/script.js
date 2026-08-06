@@ -551,7 +551,10 @@ document
 .value
 )
 
-
+if(body.uid==""){
+    alert("UID kosong");
+    return;
+}
 
 };
 
