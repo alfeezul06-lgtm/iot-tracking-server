@@ -64,20 +64,13 @@ async function loadDashboard(){
 
 
 // ================= TABLE =================
-
-
 function renderTable(items){
 
-
 const table =
-document.getElementById(
-"stock-tbody"
-);
-
+document.getElementById("stock-tbody");
 
 
 table.innerHTML="";
-
 
 
 items.forEach(item=>{
@@ -94,14 +87,11 @@ item.status.toUpperCase()=="LOW"
 
 table.innerHTML += `
 
-
 <tr>
 
-
 <td>
-${item.uid}
+${item.partNumber || "-"}
 </td>
-
 
 
 <td>
@@ -109,11 +99,19 @@ ${item.uid}
 </td>
 
 
+<td>
+${item.brand || "-"}
+</td>
+
+
+<td>
+${item.vehicle || "-"}
+</td>
+
 
 <td>
 ${item.rack}
 </td>
-
 
 
 <td>
@@ -121,17 +119,13 @@ ${item.qty}
 </td>
 
 
-
 <td>
 
 <span class="${status}">
-
 ${item.status}
-
 </span>
 
 </td>
-
 
 
 <td>
@@ -139,34 +133,7 @@ ${item.price}
 </td>
 
 
-
-<td class="action-cell">
-
-
-<button 
-class="edit-btn"
-onclick="editItem(${item.id})">
-
-EDIT
-
-</button>
-
-
-
-<button 
-class="delete-btn"
-onclick="deleteItem(${item.id})">
-
-DELETE
-
-</button>
-
-
-</td>
-
-
 </tr>
-
 
 `;
 
@@ -174,11 +141,6 @@ DELETE
 
 
 }
-
-
-
-
-
 // ================= EDIT =================
 
 
@@ -496,71 +458,86 @@ document
 
 
 // ================= RFID SCAN =================
-
-
 async function sendScan(){
-
 
 
 let body={
 
 
-
 uid:
+document.getElementById("uid").value.toUpperCase(),
 
-document
-.getElementById("uid")
-.value
-.toUpperCase(),
 
+
+partNumber:
+document.getElementById("partNumber").value,
 
 
 
 name:
+document.getElementById("name").value,
 
-document
-.getElementById("name")
-.value,
 
+
+brand:
+document.getElementById("brand").value,
+
+
+
+vehicle:
+document.getElementById("vehicle").value,
+
+
+
+category:
+document.getElementById("category").value,
 
 
 
 rack:
+document.getElementById("rack").value,
 
-document
-.getElementById("zone")
-.value,
 
+
+minStock:
+Number(
+document.getElementById("minStock").value
+),
 
 
 
 mode:
-
-document
-.getElementById("mode")
-.value,
-
+document.getElementById("mode").value,
 
 
 
 qty:
-
 Number(
-document
-.getElementById("qty")
-.value
-)
+document.getElementById("qty").value
+),
 
-if(body.uid==""){
-    alert("UID kosong");
-    return;
-}
+
+
+price:
+document.getElementById("price").value
+
+
 
 };
 
 
 
+if(body.uid==""){
 
+alert("RFID UID kosong");
+
+return;
+
+}
+
+
+
+const response =
 await fetch("/scan",{
 
 
@@ -570,20 +547,26 @@ method:"POST",
 headers:{
 
 
-"Content-Type":
-"application/json"
+"Content-Type":"application/json"
 
 
 },
 
 
 body:
-
 JSON.stringify(body)
 
 
-
 });
+
+
+
+const result =
+await response.json();
+
+
+
+console.log(result);
 
 
 
@@ -594,11 +577,6 @@ loadDashboard();
 
 
 }
-
-
-
-
-
 
 
 // ================= CLEAR LOG =================
