@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>
-IoT Warehouse Tracking System
+Automotive Spare Parts Warehouse System
 </title>
 
 <link rel="stylesheet" href="style.css">
@@ -26,24 +26,28 @@ IoT Warehouse Tracking System
 
 <div class="brand">
 
+
 <div class="logo">
-📦
+🚗
 </div>
+
 
 <div>
 
 <h1>
-WAREHOUSE TRACKING SYSTEM
+AUTOMOTIVE SPARE PARTS TRACKING SYSTEM
 </h1>
 
 <p>
-RFID + IoT Inventory Monitoring
+RFID + IoT Warehouse Inventory Management
 </p>
 
+
 </div>
 
 
 </div>
+
 
 
 
@@ -53,9 +57,11 @@ RFID + IoT Inventory Monitoring
 
 SERVER ONLINE
 
+
 <div id="live-time">
 --:--
 </div>
+
 
 </div>
 
@@ -66,12 +72,13 @@ SERVER ONLINE
 
 
 
+
 <section class="metrics">
 
 
 <div class="card">
 
-<h3>PRODUCTS</h3>
+<h3>TOTAL PARTS</h3>
 
 <h1 id="total-products">
 0
@@ -80,9 +87,10 @@ SERVER ONLINE
 </div>
 
 
+
 <div class="card">
 
-<h3>TOTAL UNITS</h3>
+<h3>TOTAL STOCK</h3>
 
 <h1 id="total-units">
 0
@@ -106,7 +114,7 @@ SERVER ONLINE
 
 <div class="card money">
 
-<h3>VALUE</h3>
+<h3>INVENTORY VALUE</h3>
 
 <h1 id="inv-value">
 RM0
@@ -115,8 +123,9 @@ RM0
 </div>
 
 
-
 </section>
+
+
 
 
 
@@ -127,16 +136,20 @@ RM0
 
 <input 
 id="search-bar"
-placeholder="Search UID / Item..."
+placeholder="Search Part No / Item / Vehicle..."
 >
 
 
 <button onclick="openModal()">
+
 + RFID SCAN
+
 </button>
 
 
 </div>
+
+
 
 
 
@@ -153,20 +166,31 @@ placeholder="Search UID / Item..."
 <tr>
 
 <th>PART NO</th>
+
 <th>ITEM</th>
-<th>VEHILCE</th>
-<th>ZONE</th>
+
+<th>BRAND</th>
+
+<th>VEHICLE</th>
+
+<th>RACK</th>
+
 <th>QTY</th>
+
 <th>STATUS</th>
+
 <th>PRICE</th>
 
+
 </tr>
+
 
 </thead>
 
 
 
 <tbody id="stock-tbody">
+
 
 </tbody>
 
@@ -176,6 +200,9 @@ placeholder="Search UID / Item..."
 
 
 </div>
+
+
+
 
 
 
@@ -198,12 +225,16 @@ CLEAR
 </button>
 
 
+
 <div id="logs">
 
 </div>
 
 
+
 </div>
+
+
 
 
 
@@ -213,13 +244,15 @@ CLEAR
 
 
 <h2>
-Zone Capacity
+Rack Capacity
 </h2>
+
 
 
 <div id="chart-box">
 
 </div>
+
 
 
 </div>
@@ -230,7 +263,10 @@ Zone Capacity
 
 
 
+
 </div>
+
+
 
 
 
@@ -248,52 +284,162 @@ Zone Capacity
 
 
 <h2>
-RFID TRANSACTION
+SPARE PART RFID TRANSACTION
 </h2>
 
 
+
 <label>
-UID
+RFID UID
 </label>
 
 <input id="uid">
 
 
+
+
+
 <label>
-ITEM NAME
+Part Number
+</label>
+
+<input id="partNumber">
+
+
+
+
+
+<label>
+Item Name
 </label>
 
 <input id="name">
 
 
 
+
+
 <label>
-ZONE
+Brand
 </label>
 
-<select id="zone">
+<input id="brand">
+
+
+
+
+
+<label>
+Vehicle Model
+</label>
+
+<input id="vehicle">
+
+
+
+
+
+<label>
+Category
+</label>
+
+
+<select id="category">
+
+
+<option>
+Engine
+</option>
+
+
+<option>
+Brake System
+</option>
+
+
+<option>
+Electrical
+</option>
+
+
+<option>
+Cooling System
+</option>
+
+
+<option>
+Suspension
+</option>
+
+
+<option>
+Transmission
+</option>
+
+
+</select>
+
+
+
+
+
+
+
+<label>
+Rack Location
+</label>
+
+
+<select id="rack">
+
 
 <option>
 Rack-A01
 </option>
 
+
 <option>
 Rack-A02
 </option>
 
-<option>
-Rack-A03
-</option>
 
 <option>
-Rack-A04
+Rack-B01
 </option>
 
+
 <option>
-Rack-A05
+Rack-B02
 </option>
+
+
+<option>
+Rack-C01
+</option>
+
 
 </select>
+
+
+
+
+
+
+
+<label>
+Minimum Stock
+</label>
+
+
+<input 
+type="number"
+id="minStock"
+value="5"
+>
+
+
+
+
 
 
 
@@ -304,13 +450,18 @@ MODE
 
 <select id="mode">
 
+
 <option value="STOCK_IN">
+
 STOCK IN
+
 </option>
 
 
 <option value="STOCK_OUT">
+
 STOCK OUT
+
 </option>
 
 
@@ -318,33 +469,71 @@ STOCK OUT
 
 
 
+
+
+
+
 <label>
-QUANTITY
+Quantity
 </label>
 
 
-<input 
+<input
+
 type="number"
+
 id="qty"
+
 value="1"
+
 >
 
 
 
+
+
+
+<label>
+Price
+</label>
+
+
+<input
+
+id="price"
+
+value="RM0"
+
+>
+
+
+
+
+
+
+
 <button onclick="sendScan()">
+
 SUBMIT
+
 </button>
 
 
 <button onclick="closeModal()">
+
 CANCEL
+
 </button>
 
 
 
-</div>
 
 </div>
+
+
+</div>
+
+
 
 
 
