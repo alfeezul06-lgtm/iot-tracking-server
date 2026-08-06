@@ -52,7 +52,20 @@ app.get('/data', (req, res) => {
         products: totalProducts,
         totalUnits: totalUnitsCount.toLocaleString(),
         lowStock: lowStockCount,
-        inventoryValue: db.overview?.inventoryValue || "RM 0",
+
+        const totalValue = items.reduce((acc,item)=>{
+
+        let price =
+        Number(
+        (item.price || "0")
+        .replace("RM","")
+        );
+        
+        return acc + (price * item.qty);
+        
+        },0);
+        
+        inventoryValue: "RM " + totalValue.toLocaleString(),
         time: getMYTimestamp('full') + " (MYT)"
     };
 
@@ -155,7 +168,7 @@ app.post('/edit', (req, res) => {
     
     item.rack = req.body.rack || item.rack;
     item.qty = qtyInput;
-    item.status = qtyInput <= 5 ? "LOW" : "Normal";
+    item.status = item.qty <= item.minStock? "LOW": "NORMAL"
     item.price = req.body.price || item.price;
     item.updated = timestamp;
 
@@ -278,6 +291,44 @@ app.post('/scan', (req,res)=>{
     
     }
 
+    else{
+
+
+        item.partNumber =
+        req.body.partNumber || item.partNumber;
+        
+        
+        item.name =
+        req.body.name || item.name;
+        
+        
+        item.brand =
+        req.body.brand || item.brand;
+        
+        
+        item.vehicle =
+        req.body.vehicle || item.vehicle;
+        
+        
+        item.category =
+        req.body.category || item.category;
+        
+        
+        item.rack =
+        req.body.rack || item.rack;
+        
+        
+        item.price =
+        req.body.price || item.price;
+        
+        
+        item.minStock =
+        Number(req.body.minStock)
+        || item.minStock;
+    
+    
+    }
+
     // STOCK IN
 
     if(
@@ -362,20 +413,7 @@ app.post('/scan', (req,res)=>{
     res.json({
 
         success:true,
-
-        uid:item.uid,
-
-        name:item.name,
-
-        qty:item.qty,
-
-        rack:item.rack,
-
-        price:item.price,
-
-        status:item.status,
-
-        updated:item.updated
+        item:item
 
     });
 
