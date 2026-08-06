@@ -135,6 +135,7 @@ app.post('/edit', (req, res) => {
     }
 
     item.uid = req.body.uid || item.uid;
+    item.name = req.body.name || item.name;
     item.rack = req.body.rack || item.rack;
     item.qty = qtyInput;
     item.status = qtyInput <= 5 ? "LOW" : "Normal";
