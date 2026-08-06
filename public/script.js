@@ -100,16 +100,14 @@ ${item.price}
 
 <td>
 
-<button class="btn-edit-inline"
-onclick="editItem(${item.id})">
-EDIT
-</button>
+<td class="action-cell">
+    <button class="edit-btn" onclick="editItem(${item.id})">
+        ✏️ Edit
+    </button>
 
-<button class="btn-delete"
-onclick="deleteItem(${item.id})">
-DELETE
-</button>
-
+    <button class="delete-btn" onclick="deleteItem(${item.id})">
+        🗑 Delete
+    </button>
 </td>
 
 </tr>
