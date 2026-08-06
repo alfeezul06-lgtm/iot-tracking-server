@@ -42,59 +42,149 @@ const writeDB = (data) => {
 
 // GET /data - Core dashboard pull endpoint with dynamic stock level tracking
 app.get('/data', (req, res) => {
-    const db = readDB();
-    const items = db.items || [];
-    const totalProducts = items.length;
-    const totalUnitsCount = items.reduce((acc, item) => acc + (parseInt(item.qty, 10) || 0), 0);
-    const lowStockCount = items.filter(item => (item.status || "").toUpperCase() === "LOW").length;
-    
-    db.overview = {
-        products: totalProducts,
-        totalUnits: totalUnitsCount.toLocaleString(),
-        lowStock: lowStockCount,
 
-        const totalValue = items.reduce((acc,item)=>{
+    const db = readDB();
+
+    const items = db.items || [];
+
+
+    const totalProducts = items.length;
+
+
+    const totalUnitsCount = items.reduce(
+        (acc, item) =>
+        acc + (parseInt(item.qty,10) || 0),
+        0
+    );
+
+
+    const lowStockCount = items.filter(item =>
+        (item.status || "").toUpperCase() === "LOW"
+    ).length;
+
+
+
+    // CALCULATE INVENTORY VALUE
+    const totalValue = items.reduce((acc,item)=>{
 
         let price =
         Number(
-        (item.price || "0")
-        .replace("RM","")
+            String(item.price || "0")
+            .replace("RM","")
         );
-        
+
+
         return acc + (price * item.qty);
-        
-        },0);
-        
-        inventoryValue: "RM " + totalValue.toLocaleString(),
-        time: getMYTimestamp('full') + " (MYT)"
+
+
+    },0);
+
+
+
+
+
+    db.overview = {
+
+        products: totalProducts,
+
+        totalUnits:
+        totalUnitsCount.toLocaleString(),
+
+        lowStock:
+        lowStockCount,
+
+
+        inventoryValue:
+        "RM " + totalValue.toLocaleString(),
+
+
+        time:
+        getMYTimestamp('full') + " (MYT)"
+
     };
 
-    // Group totals by location to determine storage density
+
+
+
+
+    // RACK CAPACITY
+
     const rackVolumes = {};
-    items.forEach(item => {
-        const rack = item.rack || "Rack-A01";
-        rackVolumes[rack] = (rackVolumes[rack] || 0) + (parseInt(item.qty, 10) || 0);
+
+
+    items.forEach(item=>{
+
+
+        const rack =
+        item.rack || "Rack-A01";
+
+
+        rackVolumes[rack] =
+        (rackVolumes[rack] || 0)
+        +
+        (parseInt(item.qty,10)||0);
+
+
     });
 
-    const maxVolume = Math.max(...Object.values(rackVolumes), 0);
-    const standardZones = [
+
+
+
+
+    const maxVolume =
+    Math.max(
+        ...Object.values(rackVolumes),
+        0
+    );
+
+
+
+    const racks = [
+
         "Rack-A01",
         "Rack-A02",
         "Rack-A03",
         "Rack-B01",
         "Rack-B02",
         "Rack-C01"
+
     ];
-    
-    db.movement = standardZones.map(zone => {
-        const currentQty = rackVolumes[zone] || 0;
-        const percentage = currentQty > 0 && maxVolume > 0 ? Math.round((currentQty / maxVolume)*100) : 0;
-        return { day: zone, percentage: percentage };
+
+
+
+
+    db.movement =
+    racks.map(rack=>{
+
+
+        let qty =
+        rackVolumes[rack] || 0;
+
+
+        return {
+
+            day:rack,
+
+            percentage:
+            maxVolume > 0
+            ?
+            Math.round(
+            (qty/maxVolume)*100
+            )
+            :
+            0
+
+        };
+
+
     });
 
-    res.json(db);
-});
 
+
+    res.json(db);
+
+
+});
 // POST /add - Manual web dashboard additions
 app.post('/add', (req, res) => {
     const db = readDB();
