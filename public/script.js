@@ -1,29 +1,38 @@
 const API = "";
 
-// ================= LOAD DATA =================
+
+// ================= LOAD DASHBOARD =================
 
 async function loadDashboard(){
 
     try{
 
-        const res = await fetch(API + "/data");
-        const data = await res.json();
+        const response = await fetch(API + "/data");
+
+        const data = await response.json();
+
 
 
         // TIME
+
         document.getElementById("live-time").innerHTML =
         data.overview.time;
 
 
-        // METRICS
+
+        // METRIC
+
         document.getElementById("total-products").innerHTML =
         data.overview.products;
+
 
         document.getElementById("total-units").innerHTML =
         data.overview.totalUnits;
 
+
         document.getElementById("low-stock").innerHTML =
         data.overview.lowStock;
+
 
         document.getElementById("inv-value").innerHTML =
         data.overview.inventoryValue;
@@ -37,14 +46,20 @@ async function loadDashboard(){
         renderChart(data.movement);
 
 
-    }
-    catch(err){
 
-        console.log("SERVER ERROR",err);
+    }
+    catch(error){
+
+        console.log(
+            "SERVER ERROR:",
+            error
+        );
 
     }
 
 }
+
+
 
 
 
@@ -53,64 +68,106 @@ async function loadDashboard(){
 
 function renderTable(items){
 
-const tbody =
-document.getElementById("stock-tbody");
+
+const table =
+document.getElementById(
+"stock-tbody"
+);
 
 
-tbody.innerHTML="";
+
+table.innerHTML="";
+
 
 
 items.forEach(item=>{
 
 
-let statusColor =
+let status =
 item.status.toUpperCase()=="LOW"
-?"status-low"
-:"status-normal";
+?
+"status-low"
+:
+"status-normal";
 
 
-tbody.innerHTML += `
+
+table.innerHTML += `
+
+
 <tr>
+
 
 <td>
 ${item.uid}
 </td>
 
+
+
 <td>
 <b>${item.name}</b>
 </td>
+
+
 
 <td>
 ${item.rack}
 </td>
 
+
+
 <td>
 ${item.qty}
 </td>
 
+
+
 <td>
-<span class="${item.status === "LOW" ? "status-low" : "status-normal"}">
+
+<span class="${status}">
+
 ${item.status}
+
 </span>
+
 </td>
+
+
 
 <td>
 ${item.price}
 </td>
 
-<td>
+
 
 <td class="action-cell">
-    <button class="edit-btn" onclick="editItem(${item.id})">
-        ✏️ Edit
-    </button>
 
-    <button class="delete-btn" onclick="deleteItem(${item.id})">
-        🗑 Delete
-    </button>
+
+<button 
+class="edit-btn"
+onclick="editItem(${item.id})">
+
+EDIT
+
+</button>
+
+
+
+<button 
+class="delete-btn"
+onclick="deleteItem(${item.id})">
+
+DELETE
+
+</button>
+
+
 </td>
 
+
 </tr>
+
+
 `;
 
 });
@@ -120,7 +177,9 @@ ${item.price}
 
 
 
-// ================= EDIT ITEM =================
+
+
+// ================= EDIT =================
 
 
 async function editItem(id){
@@ -128,51 +187,57 @@ async function editItem(id){
 
 let name =
 prompt(
-"New Item Name"
+"Enter new item name"
 );
 
 
+
 let qty =
-document.getElementById(
-"qty-"+id
-).value;
+prompt(
+"Enter new quantity"
+);
 
 
 
-if(!name)
+if(!name || !qty)
 return;
-
-
-
-let body={
-
-id:id,
-
-name:name,
-
-qty:qty
-
-};
 
 
 
 await fetch("/edit",{
 
+
 method:"POST",
 
+
 headers:{
-"Content-Type":"application/json"
+
+"Content-Type":
+"application/json"
+
 },
 
-body:JSON.stringify(body)
+
+body:JSON.stringify({
+
+id:id,
+
+name:name,
+
+qty:Number(qty)
+
+})
+
 
 });
+
 
 
 loadDashboard();
 
 
 }
+
 
 
 
@@ -183,16 +248,24 @@ loadDashboard();
 async function deleteItem(id){
 
 
-if(!confirm("Remove item?"))
+if(
+!confirm(
+"Delete this item?"
+)
+)
 return;
 
 
 
-await fetch("/remove/"+id,{
+await fetch(
+"/remove/"+id,
+{
 
 method:"DELETE"
 
-});
+}
+);
+
 
 
 loadDashboard();
@@ -203,7 +276,8 @@ loadDashboard();
 
 
 
-// ================= LOG =================
+
+// ================= HISTORY =================
 
 
 function renderLogs(history){
@@ -211,30 +285,37 @@ function renderLogs(history){
 
 const box =
 document.getElementById(
-"transactions-list"
+"logs"
 );
+
 
 
 box.innerHTML="";
 
 
 
-history.slice(0,10)
+history
+.slice(0,10)
 .forEach(log=>{
+
 
 
 let color =
 log.change.includes("-")
-?"log-neg"
-:"log-pos";
+?
+"log-neg"
+:
+"log-pos";
 
 
 
 box.innerHTML += `
 
+
 <div class="log-row">
 
-<span class="log-time">
+
+<span>
 ${log.time}
 </span>
 
@@ -251,7 +332,10 @@ ${log.change}
 
 </div>
 
+
 `;
+
+
 
 });
 
@@ -261,7 +345,8 @@ ${log.change}
 
 
 
-// ================= CHART =================
+
+// ================= ZONE CHART =================
 
 
 function renderChart(data){
@@ -271,6 +356,7 @@ const box =
 document.getElementById(
 "chart-box"
 );
+
 
 
 box.innerHTML="";
@@ -287,8 +373,11 @@ box.innerHTML += `
 
 
 <div class="day">
+
 ${zone.day}
+
 </div>
+
 
 
 <div 
@@ -300,7 +389,9 @@ style="--width:${zone.percentage}%">
 
 
 <div>
+
 ${zone.percentage}%
+
 </div>
 
 
@@ -308,6 +399,7 @@ ${zone.percentage}%
 
 
 `;
+
 
 });
 
@@ -317,14 +409,18 @@ ${zone.percentage}%
 
 
 
+
 // ================= SEARCH =================
 
 
 document
-.getElementById("search-bar")
+.getElementById(
+"search-bar"
+)
 .addEventListener(
 "input",
 function(){
+
 
 
 let value =
@@ -340,30 +436,40 @@ document
 
 
 row.style.display =
+
 row.innerText
 .toLowerCase()
 .includes(value)
+
 ?
+
 ""
+
 :
+
 "none";
 
-});
 
 
 });
 
 
+});
 
 
-// ================= SCAN MODAL =================
 
 
-function openScanModal(){
+
+
+// ================= MODAL =================
+
+
+function openModal(){
+
 
 document
 .getElementById(
-"scan-modal"
+"modal"
 )
 .style.display="flex";
 
@@ -372,11 +478,12 @@ document
 
 
 
-function closeScanModal(){
+function closeModal(){
+
 
 document
 .getElementById(
-"scan-modal"
+"modal"
 )
 .style.display="none";
 
@@ -385,61 +492,108 @@ document
 
 
 
-// ================= SIMULATE RFID =================
 
 
-async function submitScanPayload(){
+
+// ================= RFID SCAN =================
+
+
+async function sendScan(){
+
 
 
 let body={
 
 
+
 uid:
-"SIM-"+Date.now(),
+
+document
+.getElementById("uid")
+.value
+.toUpperCase(),
+
+
+
+
+name:
+
+document
+.getElementById("name")
+.value,
+
+
+
+
+rack:
+
+document
+.getElementById("zone")
+.value,
+
+
 
 
 mode:
-document.getElementById(
-"scan-status"
-).value,
+
+document
+.getElementById("mode")
+.value,
+
 
 
 
 qty:
+
 Number(
-document.getElementById(
-"scan-qty"
-).value
-),
+document
+.getElementById("qty")
+.value
+)
+
 
 
 };
 
 
 
+
 await fetch("/scan",{
+
 
 method:"POST",
 
+
 headers:{
-"Content-Type":"application/json"
+
+
+"Content-Type":
+"application/json"
+
+
 },
 
+
 body:
+
 JSON.stringify(body)
+
 
 
 });
 
 
 
-closeScanModal();
+closeModal();
 
 
 loadDashboard();
 
 
 }
+
+
+
 
 
 
@@ -450,12 +604,17 @@ loadDashboard();
 async function clearLogs(){
 
 
+
 await fetch(
 "/clear-logs",
 {
+
 method:"POST"
+
 }
+
 );
+
 
 
 loadDashboard();
@@ -466,12 +625,15 @@ loadDashboard();
 
 
 
+
 // AUTO UPDATE
+
 
 setInterval(
 loadDashboard,
-2000
+5000
 );
+
 
 
 loadDashboard();
