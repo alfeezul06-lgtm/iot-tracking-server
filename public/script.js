@@ -88,17 +88,7 @@ ${item.rack}
 
 
 
-<td>
-
-<input 
-class="qty-input"
-id="qty-${item.id}"
-value="${item.qty}"
-type="number">
-
-</td>
-
-
+<td>${item.qty}</td>
 
 <td>
 
@@ -121,7 +111,7 @@ ${item.price}
 
 <button class="btn-edit-inline"
 onclick="editItem(${item.id})">
-SAVE
+EDIT
 </button>
 
 
