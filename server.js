@@ -12,7 +12,7 @@ const DATA_FILE = path.join(__dirname, 'data.json');
 const sparePartDB = {
 
 
-    "53BC11D2": {
+    "1285D4B8": {
 
         partNumber:"BP-001",
 
@@ -56,7 +56,7 @@ const sparePartDB = {
 
 
 
-    "9FD21244": {
+    "B27FFEB8": {
 
         partNumber:"SP-001",
 
@@ -392,11 +392,6 @@ app.post('/scan', (req,res)=>{
         i=>i.uid === uid
     );
 
-
-
-
-
-    // IF NEW RFID
 
     // IF NEW RFID
 
