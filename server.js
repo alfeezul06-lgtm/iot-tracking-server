@@ -68,7 +68,7 @@ app.get('/data', (req, res) => {
     
     db.movement = standardZones.map(zone => {
         const currentQty = rackVolumes[zone] || 0;
-        const percentage = maxVolume > 0 ? Math.round((currentQty / maxVolume) * 100) : 0;
+        const percentage = currentQty > 0 && maxVolume > 0 ? Math.round((currentQty / maxVolume)*100) : 0;
         return { day: zone, percentage: percentage };
     });
 
@@ -136,6 +136,16 @@ app.post('/edit', (req, res) => {
 
     item.uid = req.body.uid || item.uid;
     item.name = req.body.name || item.name;
+
+    // Update old history name when item name changed
+    db.history.forEach(log => {
+    
+        if(log.uid === item.uid){
+            log.name = item.name;
+        }
+    
+    });
+    
     item.rack = req.body.rack || item.rack;
     item.qty = qtyInput;
     item.status = qtyInput <= 5 ? "LOW" : "Normal";
