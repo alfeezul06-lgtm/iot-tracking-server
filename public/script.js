@@ -1,151 +1,504 @@
-const API = ""; 
-let currentSearchQuery = "";
+const API = "";
 
-async function load() {
-  try {
-    const res = await fetch(API + "/data");
-    const data = await res.json();
+// ================= LOAD DATA =================
 
-    document.getElementById("total-products").innerText = data.overview.products || 0;
-    document.getElementById("total-units").innerText = data.overview.totalUnits || 0;
-    document.getElementById("low-stock").innerText = data.overview.lowStock || 0;
-    document.getElementById("inv-value").innerText = data.overview.inventoryValue || "RM 0";
-    if(data.overview.time) {
-        document.getElementById("live-time").innerText = data.overview.time;
+async function loadDashboard(){
+
+    try{
+
+        const res = await fetch(API + "/data");
+        const data = await res.json();
+
+
+        // TIME
+        document.getElementById("live-time").innerHTML =
+        data.overview.time;
+
+
+        // METRICS
+        document.getElementById("total-products").innerHTML =
+        data.overview.products;
+
+        document.getElementById("total-units").innerHTML =
+        data.overview.totalUnits;
+
+        document.getElementById("low-stock").innerHTML =
+        data.overview.lowStock;
+
+        document.getElementById("inv-value").innerHTML =
+        data.overview.inventoryValue;
+
+
+
+        renderTable(data.items);
+
+        renderLogs(data.history);
+
+        renderChart(data.movement);
+
+
+    }
+    catch(err){
+
+        console.log("SERVER ERROR",err);
+
     }
 
-    const tbody = document.getElementById("stock-tbody");
-    tbody.innerHTML = "";
-
-    const filteredItems = data.items.filter(item => 
-      item.name.toLowerCase().includes(currentSearchQuery.toLowerCase()) ||
-      item.rack.toLowerCase().includes(currentSearchQuery.toLowerCase())
-    );
-
-    filteredItems.forEach(item => {
-      const statusClass = item.status.toUpperCase() === "LOW" ? "text-low" : "status-normal";
-      tbody.innerHTML += `
-        <tr>
-          <td><strong>${item.name}</strong></td>
-          <td>${item.rack}</td>
-          <td>${item.qty}</td>
-          <td class="${statusClass}">${item.status}</td>
-          <td>${item.price}</td>
-          <td>
-            <button class="btn-edit-inline" onclick="editItem(${item.id}, '${item.name}', '${item.rack}', ${item.qty}, '${item.price}')">Edit</button>
-            <button class="btn-delete" onclick="removeItem(${item.id})">Delete</button>
-          </td>
-        </tr>
-      `;
-    });
-
-    const logsContainer = document.getElementById("transactions-list");
-    logsContainer.innerHTML = "";
-    
-    data.history.forEach(log => {
-      const changeClass = log.change.startsWith("+") ? "log-pos" : "log-neg";
-      logsContainer.innerHTML += `
-        <div class="log-row">
-            <div><span class="log-time">${log.time}</span> <span>${log.name}</span></div>
-            <span class="${changeClass}">${log.change}</span>
-        </div>
-      `;
-    });
-
-    const chartBox = document.getElementById("chart-box");
-    chartBox.innerHTML = "";
-    
-    data.movement.forEach(move => {
-       chartBox.innerHTML += `
-          <div class="chart-row">
-             <span class="day">${move.day}</span>
-             <div class="bar" style="--width: ${move.percentage}%;"></div>
-          </div>
-       `;
-    });
-
-  } catch (error) {
-     console.error("Layout telemetry sync failure:", error);
-  }
 }
 
-async function addItem() {
-    const name = prompt("Item Label Description:");
-    if (!name) return;
-    const rack = prompt("Assigned Storage Zone (e.g., Zone-A):") || "Zone-A";
-    const qty = parseInt(prompt("Starting Volume Units:"), 10) || 0;
-    const price = prompt("Evaluated Unit Cost:") || "RM 0";
 
-    await fetch(API + "/add", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, rack, qty, price })
-    });
-    load();
-}
 
-async function editItem(id, currentName, currentRack, currentQty, currentPrice) {
-    const name = prompt("Modify Description:", currentName) || currentName;
-    const rack = prompt("Modify Zone Allocation:", currentRack) || currentRack;
-    const qty = parseInt(prompt("Modify Quantities Available:", currentQty), 10);
-    const price = prompt("Modify Unit Valuation Cost:", currentPrice) || currentPrice;
+// ================= TABLE =================
 
-    if (isNaN(qty)) return;
 
-    await fetch(API + "/edit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, name, rack, qty, price })
-    });
-    load();
-}
+function renderTable(items){
 
-// SIMULATED MODAL ACTIONS
-function openScanModal() {
-    document.getElementById("scan-name").value = "";
-    document.getElementById("scan-qty").value = "1";
-    document.getElementById("scan-price").value = "RM ";
-    document.getElementById("scan-modal").style.display = "flex";
-}
+const tbody =
+document.getElementById("stock-tbody");
 
-function closeScanModal() {
-    document.getElementById("scan-modal").style.display = "none";
-}
 
-async function submitScanPayload() {
-    const name = document.getElementById("scan-name").value;
-    if (!name) return alert("Item Name field required!");
-    
-    const rack = document.getElementById("scan-rack").value;
-    const status = document.getElementById("scan-status").value;
-    const qty = parseInt(document.getElementById("scan-qty").value, 10) || 1;
-    const price = document.getElementById("scan-price").value || "RM 0";
+tbody.innerHTML="";
 
-    await fetch(API + "/scan", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, rack, status, qty, price })
-    });
 
-    closeScanModal();
-    load();
-}
+items.forEach(item=>{
 
-async function clearLogs() {
-    if (!confirm("Flush operational activity tracking logs?")) return;
-    await fetch(API + "/clear-logs", { method: "POST" });
-    load();
-}
 
-async function removeItem(id) {
-    await fetch(`${API}/remove/${id}`, { method: "DELETE" });
-    load();
-}
+let statusColor =
+item.status.toUpperCase()=="LOW"
+?"status-low"
+:"status-normal";
 
-document.getElementById("search-bar").addEventListener("input", (e) => {
-    currentSearchQuery = e.target.value;
-    load(); 
+
+tbody.innerHTML += `
+
+<tr>
+
+<td>
+
+<b>${item.name}</b>
+<br>
+<small>${item.uid}</small>
+
+</td>
+
+
+<td>
+${item.rack}
+</td>
+
+
+
+<td>
+
+<input 
+class="qty-input"
+id="qty-${item.id}"
+value="${item.qty}"
+type="number">
+
+</td>
+
+
+
+<td>
+
+<span class="${statusColor}">
+${item.status}
+</span>
+
+</td>
+
+
+
+<td>
+${item.price}
+</td>
+
+
+
+<td>
+
+
+<button class="btn-edit-inline"
+onclick="editItem(${item.id})">
+SAVE
+</button>
+
+
+
+<button class="btn-delete"
+onclick="deleteItem(${item.id})">
+DELETE
+</button>
+
+
+
+</td>
+
+
+</tr>
+
+`;
+
 });
 
-load();
-setInterval(load, 1000);
+
+}
+
+
+
+// ================= EDIT ITEM =================
+
+
+async function editItem(id){
+
+
+let name =
+prompt(
+"New Item Name"
+);
+
+
+let qty =
+document.getElementById(
+"qty-"+id
+).value;
+
+
+
+if(!name)
+return;
+
+
+
+let body={
+
+id:id,
+
+name:name,
+
+qty:qty
+
+};
+
+
+
+await fetch("/edit",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify(body)
+
+});
+
+
+loadDashboard();
+
+
+}
+
+
+
+
+// ================= DELETE =================
+
+
+async function deleteItem(id){
+
+
+if(!confirm("Remove item?"))
+return;
+
+
+
+await fetch("/remove/"+id,{
+
+method:"DELETE"
+
+});
+
+
+loadDashboard();
+
+
+}
+
+
+
+
+// ================= LOG =================
+
+
+function renderLogs(history){
+
+
+const box =
+document.getElementById(
+"transactions-list"
+);
+
+
+box.innerHTML="";
+
+
+
+history.slice(0,10)
+.forEach(log=>{
+
+
+let color =
+log.change.includes("-")
+?"log-neg"
+:"log-pos";
+
+
+
+box.innerHTML += `
+
+<div class="log-row">
+
+<span class="log-time">
+${log.time}
+</span>
+
+
+<span>
+${log.name}
+</span>
+
+
+<span class="${color}">
+${log.change}
+</span>
+
+
+</div>
+
+`;
+
+});
+
+
+}
+
+
+
+
+// ================= CHART =================
+
+
+function renderChart(data){
+
+
+const box =
+document.getElementById(
+"chart-box"
+);
+
+
+box.innerHTML="";
+
+
+
+data.forEach(zone=>{
+
+
+box.innerHTML += `
+
+
+<div class="chart-row">
+
+
+<div class="day">
+${zone.day}
+</div>
+
+
+<div 
+class="bar"
+style="--width:${zone.percentage}%">
+
+</div>
+
+
+
+<div>
+${zone.percentage}%
+</div>
+
+
+</div>
+
+
+`;
+
+});
+
+
+}
+
+
+
+
+// ================= SEARCH =================
+
+
+document
+.getElementById("search-bar")
+.addEventListener(
+"input",
+function(){
+
+
+let value =
+this.value.toLowerCase();
+
+
+
+document
+.querySelectorAll(
+"#stock-tbody tr"
+)
+.forEach(row=>{
+
+
+row.style.display =
+row.innerText
+.toLowerCase()
+.includes(value)
+?
+""
+:
+"none";
+
+});
+
+
+});
+
+
+
+
+// ================= SCAN MODAL =================
+
+
+function openScanModal(){
+
+document
+.getElementById(
+"scan-modal"
+)
+.style.display="flex";
+
+
+}
+
+
+
+function closeScanModal(){
+
+document
+.getElementById(
+"scan-modal"
+)
+.style.display="none";
+
+
+}
+
+
+
+// ================= SIMULATE RFID =================
+
+
+async function submitScanPayload(){
+
+
+let body={
+
+
+uid:
+"SIM-"+Date.now(),
+
+
+mode:
+document.getElementById(
+"scan-status"
+).value,
+
+
+
+qty:
+Number(
+document.getElementById(
+"scan-qty"
+).value
+),
+
+
+};
+
+
+
+await fetch("/scan",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:
+JSON.stringify(body)
+
+
+});
+
+
+
+closeScanModal();
+
+
+loadDashboard();
+
+
+}
+
+
+
+
+// ================= CLEAR LOG =================
+
+
+async function clearLogs(){
+
+
+await fetch(
+"/clear-logs",
+{
+method:"POST"
+}
+);
+
+
+loadDashboard();
+
+
+}
+
+
+
+
+// AUTO UPDATE
+
+setInterval(
+loadDashboard,
+2000
+);
+
+
+loadDashboard();
