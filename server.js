@@ -209,16 +209,33 @@ app.post('/scan', (req, res) => {
         const info = itemDatabase[uid];
     
         if(!info){
+
+    item = {
+
+        id: Date.now(),
+
+        uid: uid,
+
+        name: "Unknown Item",
+
+        rack: "Zone-A",
+
+        qty: 0,
+
+        price: "RM 0",
+
+        status:"LOW",
+
+        updated:timestamp
+
+    };
+
+
+    db.items.push(item);
     
-            return res.json({
+    }
+    else{
     
-                success:false,
-    
-                message:"Unknown RFID"
-    
-            });
-    
-        }
     
         item = {
     
@@ -239,6 +256,7 @@ app.post('/scan', (req, res) => {
             updated:timestamp
     
         };
+    
     
         db.items.push(item);
     
