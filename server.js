@@ -217,47 +217,59 @@ app.post('/scan', (req,res)=>{
 
     if(!item){
 
-
-       item={
-
-id:Date.now(),
-
-uid:uid,
-
-partNumber:req.body.partNumber,
-
-name:req.body.name,
-
-brand:req.body.brand,
-
-vehicle:req.body.vehicle,
-
-category:req.body.category,
-
-rack:req.body.rack,
-
-qty:0,
-
-minStock:req.body.minStock,
-
-price:req.body.price,
-
-status:"LOW",
-
-updated:timestamp
-
-}
-
-
-
+        item={
+    
+            id:Date.now(),
+    
+            uid:uid,
+    
+    
+            partNumber:
+            req.body.partNumber || "NO-PART",
+    
+    
+            name:
+            req.body.name || "New Item",
+    
+    
+            brand:
+            req.body.brand || "Unknown",
+    
+    
+            vehicle:
+            req.body.vehicle || "Universal",
+    
+    
+            category:
+            req.body.category || "Others",
+    
+    
+            rack:
+            req.body.rack || "Rack-A01",
+    
+    
+            qty:0,
+    
+    
+            minStock:
+            Number(req.body.minStock) || 5,
+    
+    
+            price:
+            req.body.price || "RM0",
+    
+    
+            status:"LOW",
+    
+    
+            updated:timestamp
+    
+        };
+    
+    
         db.items.push(item);
-
-
+    
     }
-
-
-
-
 
     // STOCK IN
 
