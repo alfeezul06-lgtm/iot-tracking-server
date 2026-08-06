@@ -59,12 +59,19 @@ app.get('/data', (req, res) => {
     // Group totals by location to determine storage density
     const rackVolumes = {};
     items.forEach(item => {
-        const rack = item.rack || "Zone-A";
+        const rack = item.rack || "Rack-A01";
         rackVolumes[rack] = (rackVolumes[rack] || 0) + (parseInt(item.qty, 10) || 0);
     });
 
     const maxVolume = Math.max(...Object.values(rackVolumes), 0);
-    const standardZones = ["Zone-A", "Zone-B", "Zone-C", "Zone-D", "Zone-E"];
+    const standardZones = [
+        "Rack-A01",
+        "Rack-A02",
+        "Rack-A03",
+        "Rack-B01",
+        "Rack-B02",
+        "Rack-C01"
+    ];
     
     db.movement = standardZones.map(zone => {
         const currentQty = rackVolumes[zone] || 0;
