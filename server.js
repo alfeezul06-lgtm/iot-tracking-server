@@ -12,7 +12,7 @@ const DATA_FILE = path.join(__dirname, 'data.json');
 const sparePartDB = {
 
 
-    "1285D4B8": {
+    "8BF12307": {
 
         partNumber:"BP-001",
 
@@ -56,7 +56,7 @@ const sparePartDB = {
 
 
 
-    "B27FFEB8": {
+    "1285D4B8": {
 
         partNumber:"SP-001",
 
