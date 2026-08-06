@@ -1,18 +1,114 @@
 {
   "overview": {
-    "products": 0,
-    "totalUnits": "0",
-    "lowStock": 0,
-    "inventoryValue": "RM 0",
-    "time": ""
+    "products": 3,
+    "totalUnits": "165",
+    "lowStock": 1,
+    "inventoryValue": "RM 1250",
+    "time": "06/08/2026"
   },
-  "items": [],
-  "history": [],
+
+  "items": [
+
+    {
+      "id": 1,
+      "uid": "A3F52B91",
+      "name": "ESP32 Development Board",
+      "rack": "Zone-A",
+      "qty": 50,
+      "status": "NORMAL",
+      "price": "RM 25",
+      "operator": "ESP32",
+      "updated": "10:30"
+    },
+
+
+    {
+      "id": 2,
+      "uid": "7B92FF10",
+      "name": "RFID RC522 Module",
+      "rack": "Zone-B",
+      "qty": 100,
+      "status": "NORMAL",
+      "price": "RM 15",
+      "operator": "ESP32",
+      "updated": "10:35"
+    },
+
+
+    {
+      "id": 3,
+      "uid": "9C21AB55",
+      "name": "Sensor Module",
+      "rack": "Zone-C",
+      "qty": 15,
+      "status": "LOW",
+      "price": "RM 20",
+      "operator": "ESP32",
+      "updated": "10:40"
+    }
+
+  ],
+
+
+  "history": [
+
+    {
+      "time": "10:40",
+      "uid": "9C21AB55",
+      "name": "Sensor Module",
+      "change": "+15"
+    },
+
+
+    {
+      "time": "10:35",
+      "uid": "7B92FF10",
+      "name": "RFID RC522 Module",
+      "change": "+100"
+    },
+
+
+    {
+      "time": "10:30",
+      "uid": "A3F52B91",
+      "name": "ESP32 Development Board",
+      "change": "+50"
+    }
+
+  ],
+
+
   "movement": [
-    { "day": "Mon", "percentage": 15 },
-    { "day": "Tue", "percentage": 30 },
-    { "day": "Wed", "percentage": 60 },
-    { "day": "Thu", "percentage": 45 },
-    { "day": "Fri", "percentage": 80 }
+
+    {
+      "day": "Zone-A",
+      "percentage": 50
+    },
+
+
+    {
+      "day": "Zone-B",
+      "percentage": 100
+    },
+
+
+    {
+      "day": "Zone-C",
+      "percentage": 30
+    },
+
+
+    {
+      "day": "Zone-D",
+      "percentage": 0
+    },
+
+
+    {
+      "day": "Zone-E",
+      "percentage": 0
+    }
+
   ]
+
 }
