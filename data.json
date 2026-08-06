@@ -1,22 +1,22 @@
 "storageUsage": [
 {
-"day":"Zone-A",
+"day":"Rack-A01",
 "percentage":0
 },
 {
-"day":"Zone-B",
+"day":"Rack-A02",
 "percentage":0
 },
 {
-"day":"Zone-C",
+"day":"Rack-A03",
 "percentage":0
 },
 {
-"day":"Zone-D",
+"day":"Rack-B01",
 "percentage":0
 },
 {
-"day":"Zone-E",
+"day":"Rack-B02",
 "percentage":0
 }
 ]
