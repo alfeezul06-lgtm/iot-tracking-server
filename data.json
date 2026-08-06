@@ -1,18 +1,22 @@
+"movement": [
 {
-  "overview": {
-    "products": 0,
-    "totalUnits": "0",
-    "lowStock": 0,
-    "inventoryValue": "RM 0",
-    "time": ""
-  },
-  "items": [],
-  "history": [],
-  "movement": [
-    { "day": "Mon", "percentage": 15 },
-    { "day": "Tue", "percentage": 30 },
-    { "day": "Wed", "percentage": 60 },
-    { "day": "Thu", "percentage": 45 },
-    { "day": "Fri", "percentage": 80 }
-  ]
+"day":"Zone-A",
+"percentage":0
+},
+{
+"day":"Zone-B",
+"percentage":0
+},
+{
+"day":"Zone-C",
+"percentage":0
+},
+{
+"day":"Zone-D",
+"percentage":0
+},
+{
+"day":"Zone-E",
+"percentage":0
 }
+]
