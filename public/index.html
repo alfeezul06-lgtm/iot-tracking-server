@@ -21,9 +21,7 @@ IoT Warehouse Tracking System
 <div class="dashboard">
 
 
-<!-- HEADER -->
-
-<header class="header">
+<header>
 
 
 <div class="brand">
@@ -32,12 +30,11 @@ IoT Warehouse Tracking System
 📦
 </div>
 
-
 <div>
 
-<h2>
+<h1>
 WAREHOUSE TRACKING SYSTEM
-</h2>
+</h1>
 
 <p>
 RFID + IoT Inventory Monitoring
@@ -50,18 +47,15 @@ RFID + IoT Inventory Monitoring
 
 
 
-<div class="network">
+<div class="server">
 
-
-<span class="online-dot"></span>
+<span></span>
 
 SERVER ONLINE
 
-
 <div id="live-time">
---:--:--
+--:--
 </div>
-
 
 </div>
 
@@ -72,18 +66,12 @@ SERVER ONLINE
 
 
 
-
-<!-- METRIC -->
-
-
 <section class="metrics">
 
 
 <div class="card">
 
-<h4>
-PRODUCTS
-</h4>
+<h3>PRODUCTS</h3>
 
 <h1 id="total-products">
 0
@@ -92,12 +80,9 @@ PRODUCTS
 </div>
 
 
-
 <div class="card">
 
-<h4>
-TOTAL UNITS
-</h4>
+<h3>TOTAL UNITS</h3>
 
 <h1 id="total-units">
 0
@@ -107,12 +92,9 @@ TOTAL UNITS
 
 
 
-
 <div class="card danger">
 
-<h4>
-LOW STOCK
-</h4>
+<h3>LOW STOCK</h3>
 
 <h1 id="low-stock">
 0
@@ -122,18 +104,16 @@ LOW STOCK
 
 
 
-
 <div class="card money">
 
-<h4>
-VALUE
-</h4>
+<h3>VALUE</h3>
 
 <h1 id="inv-value">
-RM 0
+RM0
 </h1>
 
 </div>
+
 
 
 </section>
@@ -142,22 +122,17 @@ RM 0
 
 
 
-
-
-<!-- CONTROL -->
-
-
 <div class="control">
 
 
-<input
+<input 
 id="search-bar"
-placeholder="Search item / RFID..."
+placeholder="Search UID / Item..."
 >
 
 
-<button onclick="openScanModal()">
-+ RFID SIMULATION
+<button onclick="openModal()">
++ RFID SCAN
 </button>
 
 
@@ -165,11 +140,6 @@ placeholder="Search item / RFID..."
 
 
 
-
-
-
-
-<!-- TABLE -->
 
 
 <div class="table-box">
@@ -182,49 +152,22 @@ placeholder="Search item / RFID..."
 
 <tr>
 
-<th>
-UID
-</th>
-
-<th>
-ITEM
-</th>
-
-
-<th>
-ZONE
-</th>
-
-
-<th>
-QTY
-</th>
-
-
-<th>
-STATUS
-</th>
-
-
-<th>
-PRICE
-</th>
-
-
-<th>
-ACTION
-</th>
+<th>UID</th>
+<th>ITEM</th>
+<th>ZONE</th>
+<th>QTY</th>
+<th>STATUS</th>
+<th>PRICE</th>
+<th>ACTION</th>
 
 
 </tr>
-
 
 </thead>
 
 
 
 <tbody id="stock-tbody">
-
 
 </tbody>
 
@@ -233,7 +176,6 @@ ACTION
 </table>
 
 
-
 </div>
 
 
@@ -241,36 +183,28 @@ ACTION
 
 
 
-
-
-<!-- LOWER -->
-
-
-<div class="bottom">
+<section class="bottom">
 
 
 <div class="panel">
 
 
-<h3>
+<h2>
 Transaction History
-</h3>
+</h2>
 
 
 <button onclick="clearLogs()">
-Clear
+CLEAR
 </button>
 
 
-
-<div id="transactions-list">
-
-</div>
-
-
+<div id="logs">
 
 </div>
 
+
+</div>
 
 
 
@@ -279,9 +213,9 @@ Clear
 <div class="panel">
 
 
-<h3>
+<h2>
 Zone Capacity
-</h3>
+</h2>
 
 
 <div id="chart-box">
@@ -289,34 +223,29 @@ Zone Capacity
 </div>
 
 
+</div>
+
+
+
+</section>
+
+
 
 </div>
 
 
 
-</div>
 
 
 
 
-
-</div>
-
+<!-- RFID MODAL -->
 
 
+<div id="modal">
 
 
-
-
-
-
-<!-- MODAL -->
-
-
-<div id="scan-modal">
-
-
-<div class="modal">
+<div class="modal-box">
 
 
 <h2>
@@ -328,15 +257,14 @@ RFID TRANSACTION
 UID
 </label>
 
-<input id="scan-uid">
-
+<input id="uid">
 
 
 <label>
-NAME
+ITEM NAME
 </label>
 
-<input id="scan-name">
+<input id="name">
 
 
 
@@ -344,8 +272,7 @@ NAME
 ZONE
 </label>
 
-
-<select id="scan-rack">
+<select id="zone">
 
 <option>
 Zone-A
@@ -367,7 +294,6 @@ Zone-D
 Zone-E
 </option>
 
-
 </select>
 
 
@@ -377,14 +303,14 @@ MODE
 </label>
 
 
-<select id="scan-status">
+<select id="mode">
 
-<option value="IN">
+<option value="STOCK_IN">
 STOCK IN
 </option>
 
 
-<option value="OUT">
+<option value="STOCK_OUT">
 STOCK OUT
 </option>
 
@@ -398,53 +324,28 @@ QUANTITY
 </label>
 
 
-<input
+<input 
 type="number"
-id="scan-qty"
+id="qty"
 value="1"
 >
 
 
 
-
-<label>
-PRICE
-</label>
-
-
-<input
-id="scan-price"
-value="RM 10"
->
-
-
-
-
-<div class="buttons">
-
-
-<button onclick="closeScanModal()">
-Cancel
+<button onclick="sendScan()">
+SUBMIT
 </button>
 
 
-<button onclick="submitScanPayload()">
-Submit
+<button onclick="closeModal()">
+CANCEL
 </button>
 
 
-</div>
-
-
 
 </div>
 
-
 </div>
-
-
-
-
 
 
 
