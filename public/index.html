@@ -1,116 +1,456 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Warehouse Tracking Core</title>
-    <link rel="stylesheet" href="style.css">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>
+IoT Warehouse Tracking System
+</title>
+
+<link rel="stylesheet" href="style.css">
+
 </head>
+
+
 <body>
 
+
 <div class="dashboard">
-    <header class="header">
-        <div class="brand">📦 WAREHOUSE TRACKING SYSTEM</div>
-        <div class="system-status">
-            <span class="status-indicator"></span> MYT NETWORK ONLINE
-            <span id="live-time" class="timestamp">--/--/---- --:--:-- (MYT)</span>
-        </div>
-    </header>
 
-    <div class="metrics-grid">
-        <div class="metric-box">
-            <span class="label">Distinct Products</span>
-            <h2 id="total-products">0</h2>
-        </div>
-        <div class="metric-box">
-            <span class="label">Total Units</span>
-            <h2 id="total-units">0</h2>
-        </div>
-        <div class="metric-box">
-            <span class="label">Low Stock Alarms</span>
-            <h2 id="low-stock" class="text-low">0</h2>
-        </div>
-        <div class="metric-box">
-            <span class="label">Valuation</span>
-            <h2 id="inv-value">RM 0</h2>
-        </div>
-    </div>
 
-    <div class="action-bar">
-        <input type="text" id="search-bar" placeholder="Filter parameters...">
-        <div>
-            <button class="btn-edit-inline" style="padding: 6px 14px;" onclick="openScanModal()">🤖 Simulate Scan</button>
-        </div>
-    </div>
+<!-- HEADER -->
 
-    <div class="table-container">
-        <table class="stock-table">
-            <thead>
-                <tr>
-                    <th>Identifier</th>
-                    <th>Zone</th>
-                    <th>Quantity</th>
-                    <th>Status Flag</th>
-                    <th>Unit Value</th>
-                    <th>Controls</th>
-                </tr>
-            </thead>
-            <tbody id="stock-tbody"></tbody>
-        </table>
-    </div>
+<header class="header">
 
-    <div class="lower-grid">
-        <div class="panel">
-            <div class="panel-header-flex">
-                <h3>Transaction Activity Logs</h3>
-                <button class="btn-clear-logs" onclick="clearLogs()">Clear Log</button>
-            </div>
-            <div id="transactions-list" class="list-container"></div>
-        </div>
-        
-        <div class="panel">
-            <h3>Relative Vector Volume (Zone Capacity %)</h3>
-            <div id="chart-box" class="chart-container"></div>
-        </div>
-    </div>
+
+<div class="brand">
+
+<div class="logo">
+📦
 </div>
 
-<div id="scan-modal" class="modal-overlay" style="display: none;">
-    <div class="modal-box">
-        <h3>🤖 Incoming Scan Processing</h3>
-        <p>Specify item properties for this operational node event.</p>
-        
-        <label>Item Name / Tag Label</label>
-        <input type="text" id="scan-name" placeholder="e.g., ESP32-Device-A">
-        
-        <label>Storage Rack Location</label>
-        <select id="scan-rack">
-            <option value="Zone-A">Monday</option>
-            <option value="Zone-B">Tuesday</option>
-            <option value="Zone-C">Wednesday</option>
-            <option value="Zone-D">Thursday</option>
-            <option value="Zone-E">Friday</option>
-        </select>
 
-        <label>Action Direction</label>
-        <select id="scan-status">
-            <option value="IN">IN (Increment Quantities)</option>
-            <option value="OUT">OUT (Decrement Quantities)</option>
-        </select>
+<div>
 
-        <label>Batch Quantity Amount</label>
-        <input type="number" id="scan-qty" value="1" min="1">
+<h2>
+WAREHOUSE TRACKING SYSTEM
+</h2>
 
-        <label>Unit Price Value</label>
-        <input type="text" id="scan-price" value="RM 10">
+<p>
+RFID + IoT Inventory Monitoring
+</p>
 
-        <div class="modal-actions">
-            <button class="btn-delete" onclick="closeScanModal()">Cancel</button>
-            <button class="btn-add" onclick="submitScanPayload()">Submit Transaction</button>
-        </div>
-    </div>
 </div>
+
+
+</div>
+
+
+
+<div class="network">
+
+
+<span class="online-dot"></span>
+
+SERVER ONLINE
+
+
+<div id="live-time">
+--:--:--
+</div>
+
+
+</div>
+
+
+</header>
+
+
+
+
+
+
+<!-- METRIC -->
+
+
+<section class="metrics">
+
+
+<div class="card">
+
+<h4>
+PRODUCTS
+</h4>
+
+<h1 id="total-products">
+0
+</h1>
+
+</div>
+
+
+
+<div class="card">
+
+<h4>
+TOTAL UNITS
+</h4>
+
+<h1 id="total-units">
+0
+</h1>
+
+</div>
+
+
+
+
+<div class="card danger">
+
+<h4>
+LOW STOCK
+</h4>
+
+<h1 id="low-stock">
+0
+</h1>
+
+</div>
+
+
+
+
+<div class="card money">
+
+<h4>
+VALUE
+</h4>
+
+<h1 id="inv-value">
+RM 0
+</h1>
+
+</div>
+
+
+</section>
+
+
+
+
+
+
+
+<!-- CONTROL -->
+
+
+<div class="control">
+
+
+<input
+id="search-bar"
+placeholder="Search item / RFID..."
+>
+
+
+<button onclick="openScanModal()">
++ RFID SIMULATION
+</button>
+
+
+</div>
+
+
+
+
+
+
+
+<!-- TABLE -->
+
+
+<div class="table-box">
+
+
+<table>
+
+
+<thead>
+
+<tr>
+
+<th>
+UID
+</th>
+
+<th>
+ITEM
+</th>
+
+
+<th>
+ZONE
+</th>
+
+
+<th>
+QTY
+</th>
+
+
+<th>
+STATUS
+</th>
+
+
+<th>
+PRICE
+</th>
+
+
+<th>
+ACTION
+</th>
+
+
+</tr>
+
+
+</thead>
+
+
+
+<tbody id="stock-tbody">
+
+
+</tbody>
+
+
+
+</table>
+
+
+
+</div>
+
+
+
+
+
+
+
+
+<!-- LOWER -->
+
+
+<div class="bottom">
+
+
+<div class="panel">
+
+
+<h3>
+Transaction History
+</h3>
+
+
+<button onclick="clearLogs()">
+Clear
+</button>
+
+
+
+<div id="transactions-list">
+
+</div>
+
+
+
+</div>
+
+
+
+
+
+
+<div class="panel">
+
+
+<h3>
+Zone Capacity
+</h3>
+
+
+<div id="chart-box">
+
+</div>
+
+
+
+</div>
+
+
+
+</div>
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<!-- MODAL -->
+
+
+<div id="scan-modal">
+
+
+<div class="modal">
+
+
+<h2>
+RFID TRANSACTION
+</h2>
+
+
+<label>
+UID
+</label>
+
+<input id="scan-uid">
+
+
+
+<label>
+NAME
+</label>
+
+<input id="scan-name">
+
+
+
+<label>
+ZONE
+</label>
+
+
+<select id="scan-rack">
+
+<option>
+Zone-A
+</option>
+
+<option>
+Zone-B
+</option>
+
+<option>
+Zone-C
+</option>
+
+<option>
+Zone-D
+</option>
+
+<option>
+Zone-E
+</option>
+
+
+</select>
+
+
+
+<label>
+MODE
+</label>
+
+
+<select id="scan-status">
+
+<option value="IN">
+STOCK IN
+</option>
+
+
+<option value="OUT">
+STOCK OUT
+</option>
+
+
+</select>
+
+
+
+<label>
+QUANTITY
+</label>
+
+
+<input
+type="number"
+id="scan-qty"
+value="1"
+>
+
+
+
+
+<label>
+PRICE
+</label>
+
+
+<input
+id="scan-price"
+value="RM 10"
+>
+
+
+
+
+<div class="buttons">
+
+
+<button onclick="closeScanModal()">
+Cancel
+</button>
+
+
+<button onclick="submitScanPayload()">
+Submit
+</button>
+
+
+</div>
+
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+
 
 <script src="script.js"></script>
+
+
 </body>
+
 </html>
