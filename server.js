@@ -7,6 +7,79 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const DATA_FILE = path.join(__dirname, 'data.json');
 
+// ================= RFID SPARE PART DATABASE =================
+
+const sparePartDB = {
+
+
+    "53BC11D2": {
+
+        partNumber:"BP-001",
+
+        name:"Brake Pad Front",
+
+        brand:"Bosch",
+
+        vehicle:"Toyota Vios 2018",
+
+        category:"Brake System",
+
+        rack:"Rack-A01",
+
+        price:"RM180",
+
+        minStock:5
+
+    },
+
+
+
+    "A6E20A07": {
+
+        partNumber:"OF-001",
+
+        name:"Engine Oil Filter",
+
+        brand:"Toyota",
+
+        vehicle:"Toyota Hilux",
+
+        category:"Engine",
+
+        rack:"Rack-B01",
+
+        price:"RM45",
+
+        minStock:10
+
+    },
+
+
+
+    "9FD21244": {
+
+        partNumber:"SP-001",
+
+        name:"Spark Plug",
+
+        brand:"NGK",
+
+        vehicle:"Honda Civic",
+
+        category:"Electrical",
+
+        rack:"Rack-C01",
+
+        price:"RM60",
+
+        minStock:8
+
+    }
+
+
+
+};
+
 app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
@@ -325,61 +398,92 @@ app.post('/scan', (req,res)=>{
 
     // IF NEW RFID
 
-    if(!item){
+    // IF NEW RFID
 
-        item={
-    
-            id:Date.now(),
-    
-            uid:uid,
-    
-    
-            partNumber:
-            req.body.partNumber || "NO-PART",
-    
-    
-            name:
-            req.body.name || "New Item",
-    
-    
-            brand:
-            req.body.brand || "Unknown",
-    
-    
-            vehicle:
-            req.body.vehicle || "Universal",
-    
-    
-            category:
-            req.body.category || "Others",
-    
-    
-            rack:
-            req.body.rack || "Rack-A01",
-    
-    
-            qty:0,
-    
-    
-            minStock:
-            Number(req.body.minStock) || 5,
-    
-    
-            price:
-            req.body.price || "RM0",
-    
-    
-            status:"LOW",
-    
-    
-            updated:timestamp
-    
-        };
-    
-    
-        db.items.push(item);
-    
+if(!item){
+
+
+    const info = sparePartDB[uid];
+
+
+
+    if(!info){
+
+
+        return res.json({
+
+            success:false,
+
+            message:"Unknown RFID"
+
+        });
+
+
     }
+
+
+
+
+    item = {
+
+
+        id:Date.now(),
+
+
+        uid:uid,
+
+
+        partNumber:
+        info.partNumber,
+
+
+        name:
+        info.name,
+
+
+        brand:
+        info.brand,
+
+
+        vehicle:
+        info.vehicle,
+
+
+        category:
+        info.category,
+
+
+        rack:
+        info.rack,
+
+
+        qty:0,
+
+
+        minStock:
+        info.minStock,
+
+
+        price:
+        info.price,
+
+
+        status:"LOW",
+
+
+        updated:timestamp
+
+
+
+    };
+
+
+
+    db.items.push(item);
+
+
+
+}
 
     else{
 
