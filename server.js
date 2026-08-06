@@ -218,45 +218,35 @@ app.post('/scan', (req,res)=>{
     if(!item){
 
 
-        item={
+       item={
 
+id:Date.now(),
 
-            id:Date.now(),
+uid:uid,
 
+partNumber:req.body.partNumber,
 
-            uid:uid,
+name:req.body.name,
 
+brand:req.body.brand,
 
-            name:
-            req.body.name ||
-            "New Item",
+vehicle:req.body.vehicle,
 
+category:req.body.category,
 
+rack:req.body.rack,
 
-            rack:
-            req.body.rack ||
-            "Zone-A",
+qty:0,
 
+minStock:req.body.minStock,
 
+price:req.body.price,
 
-            qty:0,
+status:"LOW",
 
+updated:timestamp
 
-
-            price:
-            req.body.price ||
-            "RM 0",
-
-
-
-            status:"LOW",
-
-
-
-            updated:timestamp
-
-
-        };
+}
 
 
 
