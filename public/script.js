@@ -70,64 +70,49 @@ item.status.toUpperCase()=="LOW"
 
 
 tbody.innerHTML += `
-
 <tr>
 
 <td>
-
-<b>${item.name}</b>
-<br>
-<small>${item.uid}</small>
-
+${item.uid}
 </td>
 
+<td>
+<b>${item.name}</b>
+</td>
 
 <td>
 ${item.rack}
 </td>
 
-
-
-<td>${item.qty}</td>
-
 <td>
-
-<span class="${statusColor}">
-${item.status}
-</span>
-
+${item.qty}
 </td>
 
-
+<td>
+<span class="${item.status === "LOW" ? "status-low" : "status-normal"}">
+${item.status}
+</span>
+</td>
 
 <td>
 ${item.price}
 </td>
 
-
-
 <td>
-
 
 <button class="btn-edit-inline"
 onclick="editItem(${item.id})">
 EDIT
 </button>
 
-
-
 <button class="btn-delete"
 onclick="deleteItem(${item.id})">
 DELETE
 </button>
 
-
-
 </td>
 
-
 </tr>
-
 `;
 
 });
