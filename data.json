@@ -1,1 +1,11 @@
-
+{
+"uid":"RF001",
+"partNumber":"BP001",
+"name":"Brake Pad",
+"brand":"Bosch",
+"vehicle":"Toyota Vios",
+"rack":"Rack-A01",
+"qty":20,
+"price":"RM180",
+"status":"NORMAL"
+}
