@@ -182,7 +182,7 @@ app.post('/scan', (req, res) => {
             qty: 0,
             price: "RM 0",
             status: "LOW",
-            operator:"ESP32"
+            operator:"ESP32",
             updated: timestamp
         };
 
