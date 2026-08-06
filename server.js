@@ -157,132 +157,220 @@ app.post('/edit', (req, res) => {
 });
 
 // POST /scan - Hardware integration endpoint supporting variables quantities
-// ================= RFID SCAN =================
-app.post('/scan', (req, res) => {
+app.post('/scan', (req,res)=>{
+
 
     const db = readDB();
 
-    const uid = (req.body.uid || "").toUpperCase();
-    const mode = (req.body.mode || "IN").toUpperCase();
-    const qty = parseInt(req.body.qty) || 1;
 
-    const timestamp = getMYTimestamp('time');
+    const uid = 
+    (req.body.uid || "")
+    .toUpperCase();
 
-    if (!uid) {
+
+    const mode =
+    (req.body.mode || "STOCK_IN")
+    .toUpperCase();
+
+
+    const qty =
+    parseInt(req.body.qty) || 1;
+
+
+    const timestamp =
+    getMYTimestamp('time');
+
+
+
+    if(!uid){
+
         return res.status(400).json({
-            success: false,
-            message: "UID Missing"
+
+            success:false,
+
+            message:"UID Missing"
+
         });
+
     }
 
+
+
     db.items = db.items || [];
+
     db.history = db.history || [];
 
-    // Search by UID
-    let item = db.items.find(i => i.uid === uid);
-
-    // New RFID
-    // SEARCH UID
-let item = db.items.find(
-    i => i.uid === uid
-);
 
 
-// IF NEW RFID CREATE ITEM
+    // CHECK EXISTING UID
 
-if(!item){
-
-
-    item = {
-
-        id: Date.now(),
-
-        uid: uid,
+    let item =
+    db.items.find(
+        i=>i.uid === uid
+    );
 
 
-        name:
-        req.body.name || "New Item",
 
 
-        rack:
-        req.body.rack || "Zone-A",
+
+    // IF NEW RFID
+
+    if(!item){
 
 
-        qty:0,
+        item={
 
 
-        price:
-        req.body.price || "RM 0",
+            id:Date.now(),
 
 
-        status:"LOW",
+            uid:uid,
 
 
-        updated:timestamp
-
-    };
-
-
-    db.items.push(item);
+            name:
+            req.body.name ||
+            "New Item",
 
 
-}
+
+            rack:
+            req.body.rack ||
+            "Zone-A",
+
+
+
+            qty:0,
+
+
+
+            price:
+            req.body.price ||
+            "RM 0",
+
+
+
+            status:"LOW",
+
+
+
+            updated:timestamp
+
+
+        };
+
+
+
+        db.items.push(item);
+
+
+    }
+
+
+
+
 
     // STOCK IN
-    if (mode === "STOCK_IN" || mode === "IN") {
+
+    if(
+        mode==="STOCK_IN" ||
+        mode==="IN"
+    ){
 
         item.qty += qty;
 
     }
 
-    // STOCK OUT
-    else if (mode === "STOCK_OUT" || mode === "OUT") {
 
-        item.qty = Math.max(0, item.qty - qty);
+
+    // STOCK OUT
+
+    else if(
+        mode==="STOCK_OUT" ||
+        mode==="OUT"
+    ){
+
+        item.qty =
+        Math.max(
+            0,
+            item.qty - qty
+        );
 
     }
 
-    // Update Status
-    item.status = item.qty <= 5 ? "LOW" : "NORMAL";
-    item.updated = timestamp;
 
-    // Save History
+
+
+
+    // UPDATE
+
+    item.status =
+    item.qty <= 5
+    ?
+    "LOW"
+    :
+    "NORMAL";
+
+
+
+    item.updated =
+    timestamp;
+
+
+
+
+
+    // HISTORY
+
     db.history.unshift({
 
-        time: timestamp,
+        time:timestamp,
 
-        uid: uid,
+        uid:uid,
 
-        name: item.name,
+        name:item.name,
 
         change:
-            (mode === "STOCK_IN" || mode === "IN")
-                ? "+" + qty
-                : "-" + qty
+        (
+            mode==="STOCK_IN" ||
+            mode==="IN"
+        )
+        ?
+        "+"+qty
+        :
+        "-"+qty
 
     });
+
+
+
+
 
     writeDB(db);
 
+
+
+
     res.json({
 
-        success: true,
+        success:true,
 
-        uid: item.uid,
+        uid:item.uid,
 
-        name: item.name,
+        name:item.name,
 
-        qty: item.qty,
+        qty:item.qty,
 
-        rack: item.rack,
+        rack:item.rack,
 
-        price: item.price,
+        price:item.price,
 
-        status: item.status,
+        status:item.status,
 
-        updated: item.updated
+        updated:item.updated
 
     });
+
+
 
 });
 
