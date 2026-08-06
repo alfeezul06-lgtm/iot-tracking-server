@@ -182,21 +182,66 @@ app.post('/scan', (req, res) => {
     let item = db.items.find(i => i.uid === uid);
 
     // New RFID
-    if (!item) {
+    const itemDatabase = {
 
-        item = {
-            id: Date.now(),
-            uid: uid,
-            name: "New Item",
+        "A6E20A07": {
+            name: "TOYOTA GR86",
             rack: "Zone-A",
-            qty: 0,
-            price: "RM 0",
-            status: "LOW",
-            operator:"ESP32",
-            updated: timestamp
+            price: "RM120000"
+        },
+    
+        "53BC11D2": {
+            name: "ESP32 DEVKIT",
+            rack: "Zone-B",
+            price: "RM45"
+        },
+    
+        "9FD21244": {
+            name: "ARDUINO UNO",
+            rack: "Zone-C",
+            price: "RM35"
+        }
+    
+    };
+    
+    if(!item){
+    
+        const info = itemDatabase[uid];
+    
+        if(!info){
+    
+            return res.json({
+    
+                success:false,
+    
+                message:"Unknown RFID"
+    
+            });
+    
+        }
+    
+        item = {
+    
+            id:Date.now(),
+    
+            uid:uid,
+    
+            name:info.name,
+    
+            rack:info.rack,
+    
+            qty:0,
+    
+            price:info.price,
+    
+            status:"LOW",
+    
+            updated:timestamp
+    
         };
-
+    
         db.items.push(item);
+    
     }
 
     // STOCK IN
