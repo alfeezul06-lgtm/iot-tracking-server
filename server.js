@@ -182,33 +182,16 @@ app.post('/scan', (req, res) => {
     let item = db.items.find(i => i.uid === uid);
 
     // New RFID
-    const itemDatabase = {
+    // SEARCH UID
+let item = db.items.find(
+    i => i.uid === uid
+);
 
-        "A6E20A07": {
-            name: "TOYOTA GR86",
-            rack: "Zone-A",
-            price: "RM120000"
-        },
-    
-        "53BC11D2": {
-            name: "ESP32 DEVKIT",
-            rack: "Zone-B",
-            price: "RM45"
-        },
-    
-        "9FD21244": {
-            name: "ARDUINO UNO",
-            rack: "Zone-C",
-            price: "RM35"
-        }
-    
-    };
-    
-    if(!item){
-    
-        const info = itemDatabase[uid];
-    
-        if(!info){
+
+// IF NEW RFID CREATE ITEM
+
+if(!item){
+
 
     item = {
 
@@ -216,15 +199,24 @@ app.post('/scan', (req, res) => {
 
         uid: uid,
 
-        name: "Unknown Item",
 
-        rack: "Zone-A",
+        name:
+        req.body.name || "New Item",
 
-        qty: 0,
 
-        price: "RM 0",
+        rack:
+        req.body.rack || "Zone-A",
+
+
+        qty:0,
+
+
+        price:
+        req.body.price || "RM 0",
+
 
         status:"LOW",
+
 
         updated:timestamp
 
@@ -232,35 +224,9 @@ app.post('/scan', (req, res) => {
 
 
     db.items.push(item);
-    
-    }
-    else{
-    
-    
-        item = {
-    
-            id:Date.now(),
-    
-            uid:uid,
-    
-            name:info.name,
-    
-            rack:info.rack,
-    
-            qty:0,
-    
-            price:info.price,
-    
-            status:"LOW",
-    
-            updated:timestamp
-    
-        };
-    
-    
-        db.items.push(item);
-    
-    }
+
+
+}
 
     // STOCK IN
     if (mode === "STOCK_IN" || mode === "IN") {
