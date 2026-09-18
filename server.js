@@ -9,74 +9,64 @@ const DATA_FILE = path.join(__dirname, 'data.json');
 
 // ================= RFID SPARE PART DATABASE =================
 
+// ================= RFID SPARE PART DATABASE =================
+
 const sparePartDB = {
 
-
-    "8BF12307": {
-
-        partNumber:"BP-001",
-
-        name:"Brake Pad Front",
-
-        brand:"Bosch",
-
-        vehicle:"Toyota Vios 2018",
-
-        category:"Brake System",
-
-        rack:"Rack-A01",
-
-        price:"RM180",
-
-        minStock:5
-
-    },
-
-
-
     "A6E20A07": {
-
-        partNumber:"OF-001",
-
-        name:"Engine Oil Filter",
-
-        brand:"Toyota",
-
-        vehicle:"Toyota Hilux",
-
-        category:"Engine",
-
-        rack:"Rack-B01",
-
-        price:"RM45",
-
-        minStock:10
-
+        partNumber: "EL-001",
+        name: "MCB 20A",
+        brand: "Schneider",
+        vehicle: "-",
+        category: "Electrical",
+        rack: "Rack-A01",
+        price: "RM25",
+        minStock: 5
     },
 
+    "1BDA0002": {
+        partNumber: "EL-002",
+        name: "Relay 5V",
+        brand: "Omron",
+        vehicle: "-",
+        category: "Electrical",
+        rack: "Rack-A02",
+        price: "RM15",
+        minStock: 5
+    },
 
+    "E41C0202": {
+        partNumber: "EL-003",
+        name: "Contactor",
+        brand: "Schneider",
+        vehicle: "-",
+        category: "Electrical",
+        rack: "Rack-A03",
+        price: "RM65",
+        minStock: 3
+    },
 
-    "1285D4B8": {
+    "64210102": {
+        partNumber: "EL-004",
+        name: "Cable 2.5mm",
+        brand: "Generic",
+        vehicle: "-",
+        category: "Cable",
+        rack: "Rack-B01",
+        price: "RM30",
+        minStock: 10
+    },
 
-        partNumber:"SP-001",
-
-        name:"Spark Plug",
-
-        brand:"NGK",
-
-        vehicle:"Honda Civic",
-
-        category:"Electrical",
-
-        rack:"Rack-C01",
-
-        price:"RM60",
-
-        minStock:8
-
+    "96E50102": {
+        partNumber: "EL-005",
+        name: "Push Button",
+        brand: "Generic",
+        vehicle: "-",
+        category: "Control",
+        rack: "Rack-B02",
+        price: "RM12",
+        minStock: 5
     }
-
-
 
 };
 
