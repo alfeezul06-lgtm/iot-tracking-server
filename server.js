@@ -9,8 +9,6 @@ const DATA_FILE = path.join(__dirname, 'data.json');
 
 // ================= RFID SPARE PART DATABASE =================
 
-// ================= RFID SPARE PART DATABASE =================
-
 const sparePartDB = {
 
     "A6E20A07": {
